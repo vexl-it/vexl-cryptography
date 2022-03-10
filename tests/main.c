@@ -6,16 +6,26 @@
 //
 
 #include <stdio.h>
-#include "crypto/ECIES.h"
+#include <vc/ECIES.h>
 
 
 int main(void) {
-	unsigned char R[512], D[512], c[512], salt[16];
-	size_t R_len, D_len, c_len;
+        unsigned char R[512], D[512], c[512], salt[16];
+        size_t R_len, D_len, c_len;
 
         OpenSSL_add_all_algorithms();
         ERR_load_crypto_strings();
         RAND_init();
+
+        char key[] = \
+"-----BEGIN PRIVATE KEY-----\n" \
+"MIIBAAIBADAQBgcqhkjOPQIBBgUrgQQAJwSB6DCB5QIBAQRIArxG5w0ydYPXKOh8\n" \
+"NDD78GSW3yioDSf6a/nVmrLU7uokoqHGh8DhZczsed7PIen1sjJSRFQvpTfXzW6g\n" \
+"yvBTiQHmRxmwWgx8oYGVA4GSAAQFFd9vDBbNrTpj4fqijc/r0SsjNsux05RlH35k\n" \
+"4iKmOScufwf3qjLdQwlRVb2gxU9xqyf5zzye4cRypgWxuEmMb0/vy/bdvMkGS7HS\n" \
+"Tl7dD4tWKGhGAB4oV2roBC6B5tTLFzpQL+SjqabQDjwCIrw9rhsoR5UTrcikJioa\n" \
+"nzwv/wzEUsNPrLSUfMq1dYvt3hk=\n" \
+"-----END PRIVATE KEY-----\n";
 
         BIO *b = BIO_new_mem_buf((void*)key, sizeof(key));
         EVP_PKEY *pkey = NULL;

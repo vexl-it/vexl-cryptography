@@ -20,8 +20,6 @@
 #include <openssl/bn.h>
 #include <openssl/hmac.h>
 
-const char key[];
-
 void RAND_init(void);
 
 EC_POINT *EC_POINT_mult_BN(const EC_GROUP *group, EC_POINT *P, const EC_POINT *a, const BIGNUM *b, BN_CTX *ctx);
