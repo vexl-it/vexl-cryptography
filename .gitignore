@@ -1,1 +1,5 @@
 openssl/*
+*.d
+*.o
+product/*
+tmp/*
