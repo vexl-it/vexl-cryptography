@@ -30,6 +30,10 @@ void test_perfomance(Curve curve) {
     } else {
         printf("%f s\n", time_in_ms/1000);
     }
+
+    for (int i = 0; i < count; i++) {
+        KeyPair_free(keyPairs[i]);
+    }
 }
 
 void test_encryption(Curve curve) {
@@ -40,6 +44,8 @@ void test_encryption(Curve curve) {
     printf("public key:\n%s\n", keys.pemPublicKey);
 
     encrypt(keys, "secret");
+
+    KeyPair_free(keys);
 }
 
 int main(void) {

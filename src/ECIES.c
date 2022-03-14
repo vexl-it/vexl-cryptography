@@ -61,6 +61,11 @@ KeyPair _EVP_PKEY_get_KeyPair(const EVP_PKEY *pkey) {
 	return keys;
 }
 
+void KeyPair_free(KeyPair KeyPair) {
+	free(KeyPair.pemPrivateKey);
+	free(KeyPair.pemPublicKey);
+}
+
 KeyPair generate_key_pair(const Curve curve) {
     OpenSSL_add_all_algorithms();
     ERR_load_BIO_strings();
