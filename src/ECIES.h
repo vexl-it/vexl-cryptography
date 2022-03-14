@@ -41,4 +41,6 @@ KeyPair generate_key_pair(Curve curve);
 void free_KeyPair(KeyPair KeyPair);
 char *encrypt(KeyPair keys, char *message);
 
+char *_get_group_name(Curve curve);
+
 #endif

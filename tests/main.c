@@ -24,10 +24,11 @@ void test_perfomance(Curve curve) {
     clock_t end = clock();
     double time_in_ms = ((double)(end - begin) / CLOCKS_PER_SEC) * 1000;
 
+    printf("Generated %d %s keypair in ", count, _get_group_name(curve));
     if (time_in_ms < 1000) {
-        printf("Generated %d keypair in %f ms\n", count, time_in_ms);
+        printf("%f ms\n", time_in_ms);
     } else {
-        printf("Generated %d keypair in %f s\n", count, time_in_ms/1000);
+        printf("%f s\n", time_in_ms/1000);
     }
 }
 
