@@ -6,39 +6,48 @@
 //
 
 #include <stdio.h>
+#include <time.h>
+
 #include <vc/ECIES.h>
 
+void test_perfomance(Curve curve) {
+    int count = 1000;
+    clock_t begin = clock();
+    KeyPair keyPairs[count];
+
+    for (int i = 0; i < count; i++) {
+        printf("\r%d/%d", i+1, count);
+        keyPairs[i] = generate_key_pair(curve);
+    }
+    printf("\n");
+
+    clock_t end = clock();
+    double time_in_ms = ((double)(end - begin) / CLOCKS_PER_SEC) * 1000;
+
+    if (time_in_ms < 1000) {
+        printf("Generated %d keypair in %f ms\n", count, time_in_ms);
+    } else {
+        printf("Generated %d keypair in %f s\n", count, time_in_ms/1000);
+    }
+}
+
+void test_encryption(Curve curve) {
+    KeyPair keys = generate_key_pair(curve);
+
+    printf("Generated key pairs\n");
+    printf("private key:\n%s\n", keys.pemPrivateKey);
+    printf("public key:\n%s\n", keys.pemPublicKey);
+
+    encrypt(keys, "secret");
+}
 
 int main(void) {
-        unsigned char R[512], D[512], c[512], salt[16];
-        size_t R_len, D_len, c_len;
+    printf("\n\n[VEXL]\n");
 
-        OpenSSL_add_all_algorithms();
-        ERR_load_crypto_strings();
-        RAND_init();
-
-        char key[] = \
-"-----BEGIN PRIVATE KEY-----\n" \
-"MIIBAAIBADAQBgcqhkjOPQIBBgUrgQQAJwSB6DCB5QIBAQRIArxG5w0ydYPXKOh8\n" \
-"NDD78GSW3yioDSf6a/nVmrLU7uokoqHGh8DhZczsed7PIen1sjJSRFQvpTfXzW6g\n" \
-"yvBTiQHmRxmwWgx8oYGVA4GSAAQFFd9vDBbNrTpj4fqijc/r0SsjNsux05RlH35k\n" \
-"4iKmOScufwf3qjLdQwlRVb2gxU9xqyf5zzye4cRypgWxuEmMb0/vy/bdvMkGS7HS\n" \
-"Tl7dD4tWKGhGAB4oV2roBC6B5tTLFzpQL+SjqabQDjwCIrw9rhsoR5UTrcikJioa\n" \
-"nzwv/wzEUsNPrLSUfMq1dYvt3hk=\n" \
-"-----END PRIVATE KEY-----\n";
-
-        BIO *b = BIO_new_mem_buf((void*)key, sizeof(key));
-        EVP_PKEY *pkey = NULL;
-        EC_KEY *eckey = NULL;
-
-        PEM_read_bio_PrivateKey(b, &pkey, NULL, NULL);
-
-        eckey = EVP_PKEY_get1_EC_KEY(pkey);
-
-	RAND_bytes(salt, sizeof(salt));
-
-	encipher(eckey, R, &R_len, c, &c_len, D, &D_len, salt, sizeof(salt));
-	decipher(eckey, R, R_len, c, c_len, D, D_len, salt, sizeof(salt));
-
-	return 0;
+    Curve curve = secp224r1;
+    
+    test_perfomance(curve);
+    test_encryption(curve);
+    
+    return 0;
 }
