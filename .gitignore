@@ -3,3 +3,4 @@ openssl/*
 *.o
 product/*
 tmp/*
+.vscode/*
