@@ -11,6 +11,9 @@
 #include <stdio.h>
 #include <stdio.h>
 #include <string.h>
+
+#ifdef BUILD_FOR_LIBRARY
+
 #include <openssl/err.h>
 #include <openssl/ec.h>
 #include <openssl/evp.h>
@@ -21,6 +24,7 @@
 #include <openssl/hmac.h>
 
 void RAND_init(void);
+#endif
 
 EC_POINT *EC_POINT_mult_BN(const EC_GROUP *group, EC_POINT *P, const EC_POINT *a, const BIGNUM *b, BN_CTX *ctx);
 
