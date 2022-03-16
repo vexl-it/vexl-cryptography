@@ -44,8 +44,8 @@ darwin: $(OFILES)
 	mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
 	$(AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
 	
-	cd src && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc 
-	cd src && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc 
+	cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc 
+	cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc 
 
 $(TMPFOLDER)/darwin/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	mkdir -p $(dir $@)
