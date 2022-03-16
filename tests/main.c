@@ -10,7 +10,7 @@
 
 #include <vc/ECIES.h>
 
-void test_perfomance(Curve curve) {
+void test_performance(Curve curve) {
     int count = 1000;
     clock_t begin = clock();
     KeyPair keyPairs[count];
@@ -53,7 +53,7 @@ int main(void) {
 
     Curve curve = secp224r1;
     
-    test_perfomance(curve);
+    test_performance(curve);
     test_encryption(curve);
     
     return 0;
