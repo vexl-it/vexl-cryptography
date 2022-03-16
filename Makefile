@@ -3,9 +3,9 @@ AR=ar
 
 TMPFOLDER=tmp
 PRODUCTFOLDER=product
-SSLINCLUDE=openssl/include
 SRCFOLDER=src
 TESTFOLDER=tests
+SSLINCLUDE=openssl/include
 TESTBIN=$(PRODUCTFOLDER)/$(TESTFOLDER)/test
 ARCHITECTURES=darwin
 
@@ -47,7 +47,7 @@ darwin: $(OFILES)
 	cd src && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc 
 	cd src && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc 
 
-tmp/darwin/src/%.o: src/%.c
+$(TMPFOLDER)/darwin/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	mkdir -p $(dir $@)
 	./build.sh --darwin
 	$(CC) -I$(SSLINCLUDE) -MP -MD -c -DBUILD_FOR_LIBRARY -o $@ $< -w
@@ -58,7 +58,7 @@ test-darwin: $(TESTOFILES)
 	mkdir -p $(dir $(TESTBIN))
 	$(CC) -lvc -Lproduct/darwin/lib -I$(SSLINCLUDE) -o $(TESTBIN) $^ product/darwin/lib/libvc.a openssl/lib/darwin/lib/libcrypto.a openssl/lib/darwin/lib/libssl.a
 
-tmp/darwin/tests/%.o: tests/%.c
+$(TMPFOLDER)/darwin/$(TESTFOLDER)/%.o: $(TESTFOLDER)/%.c
 	mkdir -p $(dir $@)
 	$(CC) -Iproduct/darwin/include -MP -MD -c -o $@ $<
 
@@ -67,6 +67,3 @@ run:
 
 clean:
 	rm -rf $(DEPFILES) $(TMPFOLDER) $(PRODUCTFOLDER)
-
-debug:
-	@echo $(TESTCFILES)
