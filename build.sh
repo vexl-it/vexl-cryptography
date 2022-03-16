@@ -20,7 +20,7 @@ printHelp() {
     echo "    -d, --darwin            Creates universal openssl static library for macOS and iOS"
     echo "    -da, --darwin-arm64     Creates arm openssl static library for macOS with apple silicon and iOS"
     echo "    -ds, --darwin-x86_64    Creates x86_64 openssl static library for macOS with iOS simulator"
-    echo "    -lx, --linux-x86_64    Creates x86_64 openssl static library for macOS with iOS simulator"
+    echo "    -lx, --linux-x86_64     Creates x86_64 openssl static library for macOS with iOS simulator"
 }
 
 build() {
@@ -38,13 +38,13 @@ build() {
             outputPath=$OUTPUT_LINUX_X86_64
             ;;
         *)
-            echo "[VEXL] Did not match any target ($targetName)"
+            echo "[OPENSSL] Did not match any target ($targetName)"
             return
             ;;
     esac
 
     if [ -d $outputPath ]; then
-        echo "[VEXL] target $targetName already exists. Skipping."
+        echo "[OPENSSL] target $targetName already exists. Skipping."
         return
     fi
 
@@ -53,26 +53,26 @@ build() {
 
     case $1 in
         DARWIN_ARM64)
-            echo "[VEXL] Building for darwing@arm64"
+            echo "[OPENSSL] Building for darwing@arm64"
             ./Configure darwin64-arm64-cc \
                 --prefix="$outputPath" \
                 no-asm \
                 no-shared
             ;;
         DARWIN_X86_64)
-            echo "[VEXL] Building for darwing@x86_64"
+            echo "[OPENSSL] Building for darwing@x86_64"
             ./Configure darwin64-x86_64-cc \
                 --prefix="$outputPath" \
                 no-shared
             ;;
         LINUX_X86_64)
-            echo "[VEXL] Building for linux@x86_64"
+            echo "[OPENSSL] Building for linux@x86_64"
             ./config linux-x86_64 \
                 --prefix="$outputPath" \
                 no-shared
             ;;
         *)
-            echo "[VEXL] Did not match any target ($targetName)"
+            echo "[OPENSSL] Did not match any target ($targetName)"
             return
             ;;
     esac
@@ -91,7 +91,7 @@ mkdir -p $LIBFOLDER $TMPFOLDER
 cd $LIBFOLDER
 
 if [ -d $LIBFOLDER/include ]; then
-    echo "[VEXL] Using current OpenSSL repo"
+    echo "[OPENSSL] Using current OpenSSL repo"
 else 
     git clone git://git.openssl.org/openssl.git $OPENSSLREPO
 fi
@@ -134,6 +134,7 @@ else
                 exit 1
                 ;;
             *)
+                echo "[OPENSSL] Unknown argument $1"
                 shift
                 ;;
         esac
@@ -143,13 +144,13 @@ fi
 wait
 
 if [ "$built_darwin_arm64" = true -a "$built_darwin_x86_64" = true -a ! -d $OUTPUT_DARWIN_SHARED ] ; then
-    echo "[VEXL] Building shared darwing framework"
+    echo "[OPENSSL] Building shared darwing framework"
     mkdir -p $OUTPUT_DARWIN_SHARED/lib/
     lipo $OUTPUT_DARWIN_ARM64/lib/libssl.a $OUTPUT_DARWIN_X86_64/lib/libssl.a -create -output $OUTPUT_DARWIN_SHARED/lib/libssl.a
     lipo $OUTPUT_DARWIN_ARM64/lib/libcrypto.a $OUTPUT_DARWIN_X86_64/lib/libcrypto.a -create -output $OUTPUT_DARWIN_SHARED/lib/libcrypto.a
     cp -R $OUTPUT_DARWIN_ARM64/include $OUTPUT_DARWIN_SHARED/include
 fi
 
-echo "[VEXL] openssl cleanup"
+echo "[OPENSSL] openssl cleanup"
 rm -Rf $TMPFOLDER
 
