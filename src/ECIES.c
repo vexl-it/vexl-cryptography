@@ -63,14 +63,14 @@ KeyPair _EVP_PKEY_get_KeyPair(const EVP_PKEY *pkey) {
 	KeyPair keys;
 
     BIO *privBIO = BIO_new(BIO_s_mem());
-    if(!PEM_write_bio_PrivateKey(privBIO, pkey, NULL, NULL, 0, 0, NULL)) {
+    if (!PEM_write_bio_PrivateKey(privBIO, pkey, NULL, NULL, 0, 0, NULL)) {
         _error(1, "Error writing private key data in PEM format");
 	}
 	keys.pemPrivateKey = _BIO_read_chars(privBIO);
     BIO_free_all(privBIO);
 
 	BIO *pubBIO = BIO_new(BIO_s_mem());
-	if(!PEM_write_bio_PUBKEY(pubBIO, pkey)) {
+	if (!PEM_write_bio_PUBKEY(pubBIO, pkey)) {
         _error(2, "Error writing public key data in PEM format");
 	}
 	keys.pemPublicKey = _BIO_read_chars(pubBIO);
@@ -98,12 +98,14 @@ KeyPair generate_key_pair(const Curve curve) {
 
     EC_KEY_set_asn1_flag(myecc, OPENSSL_EC_NAMED_CURVE);
     
-    if (! (EC_KEY_generate_key(myecc)))
+    if (!EC_KEY_generate_key(myecc)) {
         _error(3, "Error generating the ECC key.");
+    }
     
     EVP_PKEY *pkey=EVP_PKEY_new();
-    if (!EVP_PKEY_assign_EC_KEY(pkey,myecc))
+    if (!EVP_PKEY_assign_EC_KEY(pkey,myecc)) {
         _error(4, "Error assigning ECC key to EVP_PKEY structure.");
+    }
     
     myecc = EVP_PKEY_get1_EC_KEY(pkey);
     const EC_GROUP *ecgrp = EC_KEY_get0_group(myecc);
