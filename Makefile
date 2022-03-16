@@ -1,19 +1,37 @@
 CC=gcc
 AR=ar
 
+TMPFOLDER=tmp
+PRODUCTFOLDER=product
+SSLINCLUDE=openssl/include
+SRCFOLDER=src
+TESTFOLDER=tests
+TESTBIN=$(PRODUCTFOLDER)/$(TESTFOLDER)/test
 ARCHITECTURES=darwin
 
-SSLINCLUDE=openssl/include
+# ARCH variables
+ARCHOFOLDERS=$(foreach ARCH,$(ARCHITECTURES),$(TMPFOLDER)/$(ARCH))
 
+# Library files
 SRCFOLDER=src
-CFILES=$(foreach D,$(SRCFOLDER),$(wildcard $(D)/*.c))
-OFILES=$(patsubst %.c,%.o,$(CFILES))
+CFILES=$(wildcard $(SRCFOLDER)/*.c) $(wildcard $(SRCFOLDER)/**/*.c)
+OFILES=\
+$(foreach ARCHFOLDER,$(ARCHOFOLDERS),\
+	$(foreach CFILE, $(CFILES), \
+		$(patsubst %.c,%.o,$(ARCHFOLDER)/$(CFILE)) \
+	)\
+)
 
-TESTFOLDER=tests
+# Tests files
 TESTCFILES=$(foreach D,$(TESTFOLDER),$(wildcard $(D)/*.c))
-TESTOFILES=$(patsubst %.c,%.o,$(TESTCFILES))
-TESTBIN=product/tests/test
+TESTOFILES=\
+$(foreach ARCHFOLDER,$(ARCHOFOLDERS), \
+	$(foreach CFILE, $(TESTCFILES), \
+		$(patsubst %.c,%.o,$(ARCHFOLDER)/$(CFILE)) \
+	) \
+)
 
+# clean variables
 ALLCFILES= $(CFILES) $(TESTCFILES)
 DEPFILES=$(patsubst %.c,%.d,$(ALLCFILES))
 -include $(DEPFILES)
@@ -21,24 +39,26 @@ DEPFILES=$(patsubst %.c,%.d,$(ALLCFILES))
 
 all: $(ARCHITECTURES) test
 
-darwin: tmp/darwin/$(OFILES)
-	rm -Rf product/$@
-	mkdir -p product/$@/lib product/$@/include/vc
-	$(AR) rcs -v product/$@/lib/libvc.a $^
-	cp src/*.h product/$@/include/vc/
+darwin: $(OFILES)
+	
+	mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
+	$(AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
+	
+	cd src && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc 
+	cd src && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc 
 
-tmp/darwin/src/%.o: $(CFILES)
+tmp/darwin/src/%.o: src/%.c
 	mkdir -p $(dir $@)
 	./build.sh --darwin
-	$(CC) -g -I$(SSLINCLUDE) -MP -MD -c -DBUILD_FOR_LIBRARY -o $@ $<
+	$(CC) -I$(SSLINCLUDE) -MP -MD -c -DBUILD_FOR_LIBRARY -o $@ $< -w
 
 test: darwin test-darwin
 
-test-darwin: tmp/darwin/$(TESTOFILES)
+test-darwin: $(TESTOFILES)
 	mkdir -p $(dir $(TESTBIN))
-	$(CC) -lvc -Lproduct/darwin/lib -g -I$(SSLINCLUDE) -o $(TESTBIN) $< product/darwin/lib/libvc.a openssl/lib/darwin/lib/libcrypto.a openssl/lib/darwin/lib/libssl.a
+	$(CC) -lvc -Lproduct/darwin/lib -I$(SSLINCLUDE) -o $(TESTBIN) $^ product/darwin/lib/libvc.a openssl/lib/darwin/lib/libcrypto.a openssl/lib/darwin/lib/libssl.a
 
-tmp/darwin/tests/%.o: $(TESTCFILES)
+tmp/darwin/tests/%.o: tests/%.c
 	mkdir -p $(dir $@)
 	$(CC) -Iproduct/darwin/include -MP -MD -c -o $@ $<
 
@@ -46,4 +66,7 @@ run:
 	$(TESTBIN)
 
 clean:
-	rm -rf $(TESTBIN) $(OFILES) $(TESTOFILES) $(DEPFILES) tmp product
+	rm -rf $(DEPFILES) $(TMPFOLDER) $(PRODUCTFOLDER)
+
+debug:
+	@echo $(TESTCFILES)
