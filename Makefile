@@ -30,7 +30,7 @@ darwin: tmp/darwin/$(OFILES)
 tmp/darwin/src/%.o: $(CFILES)
 	mkdir -p $(dir $@)
 	./build.sh --darwin
-	$(CC) -lssl -lcrypto -Lopenssl/lib/darwin/lib -Wl,-Bstatic -g -I$(SSLINCLUDE) -MP -MD -c -o $@ $<
+	$(CC) -g -I$(SSLINCLUDE) -MP -MD -c -DBUILD_FOR_LIBRARY -o $@ $<
 
 test: darwin test-darwin
 
@@ -40,7 +40,7 @@ test-darwin: tmp/darwin/$(TESTOFILES)
 
 tmp/darwin/tests/%.o: $(TESTCFILES)
 	mkdir -p $(dir $@)
-	$(CC) -lvc -lssl -lcrypto -Lproduct/darwin/lib -Wl,-Bstatic -g -Iproduct/darwin/include -Iopenssl/include -MP -MD -c -o $@ product/darwin/lib/libvc.a openssl/lib/darwin/lib/libcrypto.a openssl/lib/darwin/lib/libssl.a  $<
+	$(CC) -Iproduct/darwin/include -MP -MD -c -o $@ $<
 
 run:
 	$(TESTBIN)
