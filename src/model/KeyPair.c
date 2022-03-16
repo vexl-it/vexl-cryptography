@@ -8,41 +8,41 @@
 #include "KeyPair.h"
 
 KeyPair _EVP_PKEY_get_KeyPair(const EVP_PKEY *pkey) {
-	KeyPair keys;
+    KeyPair keys;
 
     BIO *privBIO = BIO_new(BIO_s_mem());
     if (!PEM_write_bio_PrivateKey(privBIO, pkey, NULL, NULL, 0, 0, NULL)) {
         _error(1, "Error writing private key data in PEM format");
-	}
-	keys.pemPrivateKey = _BIO_read_chars(privBIO);
+    }
+    keys.pemPrivateKey = _BIO_read_chars(privBIO);
     BIO_free_all(privBIO);
 
-	BIO *pubBIO = BIO_new(BIO_s_mem());
-	if (!PEM_write_bio_PUBKEY(pubBIO, pkey)) {
+    BIO *pubBIO = BIO_new(BIO_s_mem());
+    if (!PEM_write_bio_PUBKEY(pubBIO, pkey)) {
         _error(2, "Error writing public key data in PEM format");
-	}
-	keys.pemPublicKey = _BIO_read_chars(pubBIO);
-	BIO_free_all(pubBIO);
+    }
+    keys.pemPublicKey = _BIO_read_chars(pubBIO);
+    BIO_free_all(pubBIO);
 
     _log("Generated new keypair");
     _log("private key: \n%s", keys.pemPrivateKey);
     _log("public key: \n%s", keys.pemPublicKey);
 
-	return keys;
+    return keys;
 }
 
 EC_KEY *_KeyPair_get_EC_KEY(const KeyPair keys) {
-	BIO *bio = BIO_new_mem_buf((void*)keys.pemPrivateKey, strlen(keys.pemPrivateKey));
-	EVP_PKEY *pkey = NULL;
-	EC_KEY *eckey = NULL;
-	
-	PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
+    BIO *bio = BIO_new_mem_buf((void*)keys.pemPrivateKey, strlen(keys.pemPrivateKey));
+    EVP_PKEY *pkey = NULL;
+    EC_KEY *eckey = NULL;
+    
+    PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
     eckey = EVP_PKEY_get1_EC_KEY(pkey);
-	
-	BIO_free_all(bio);
+    
+    BIO_free_all(bio);
     EVP_PKEY_free(pkey);
 
-	return eckey;
+    return eckey;
 }
 
 KeyPair generate_key_pair(const Curve curve) {
@@ -68,7 +68,7 @@ KeyPair generate_key_pair(const Curve curve) {
     const EC_GROUP *ecgrp = EC_KEY_get0_group(myecc);
 
     KeyPair keys = _EVP_PKEY_get_KeyPair(pkey);
-	
+    
     EVP_PKEY_free(pkey);
     EC_KEY_free(myecc);
 
@@ -76,6 +76,6 @@ KeyPair generate_key_pair(const Curve curve) {
 }
 
 void KeyPair_free(KeyPair KeyPair) {
-	free(KeyPair.pemPrivateKey);
-	free(KeyPair.pemPublicKey);
+    free(KeyPair.pemPrivateKey);
+    free(KeyPair.pemPublicKey);
 }

@@ -8,21 +8,21 @@
 #include "OpenSSLHelper.h"
 
 char *_BIO_read_chars(BIO *bio) {
-	int keySize = 0;
+    int keySize = 0;
     
-	char *content = malloc(1);
+    char *content = malloc(1);
 
-	int readSize = 1;
-	char buf[64];
+    int readSize = 1;
+    char buf[64];
 
-	while (readSize != 0) {
-		readSize = BIO_gets(bio, buf, sizeof(buf));
-		content = (char *)realloc(content, keySize + readSize);
-		for (int i = keySize; i < keySize + readSize; i++) {
-			content[i] = buf[i - keySize];
-		}
-		keySize += readSize;
-	}
+    while (readSize != 0) {
+        readSize = BIO_gets(bio, buf, sizeof(buf));
+        content = (char *)realloc(content, keySize + readSize);
+        for (int i = keySize; i < keySize + readSize; i++) {
+            content[i] = buf[i - keySize];
+        }
+        keySize += readSize;
+    }
 
-	return content;
+    return content;
 }

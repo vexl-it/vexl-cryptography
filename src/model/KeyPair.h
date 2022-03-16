@@ -23,9 +23,9 @@
 #include "../common/OpenSSLHelper.h"
 
 typedef struct {
-	char *pemPrivateKey;
-	char *pemPublicKey;
-	Curve curve;
+    char *pemPrivateKey;
+    char *pemPublicKey;
+    Curve curve;
 } KeyPair;
 
 #ifdef BUILD_FOR_LIBRARY
