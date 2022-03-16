@@ -65,9 +65,11 @@ $(OPENSSLTARGETS):
 
 darwin-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwin-x86_64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
-	$(AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^ $(SSLLIB)/$@/lib/libcrypto.a $(SSLLIB)/$@/lib/libssl.a
+	$(AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc_.a $^
 	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc 
 	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc 
+	libtool -static -o $(PRODUCTFOLDER)/$@/lib/libvc.a $(PRODUCTFOLDER)/$@/lib/libvc_.a $(SSLLIB)/$@/lib/libcrypto.a $(SSLLIB)/$@/lib/libssl.a
+	@rm $(PRODUCTFOLDER)/$@/lib/libvc_.a
 
 $(TMPFOLDER)/darwin-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
@@ -77,9 +79,11 @@ $(TMPFOLDER)/darwin-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 
 darwin-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwin-arm64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
-	$(AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^ $(SSLLIB)/$@/lib/libcrypto.a $(SSLLIB)/$@/lib/libssl.a
+	$(AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc_.a $^
 	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc 
 	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc 
+	libtool -static -o $(PRODUCTFOLDER)/$@/lib/libvc.a $(PRODUCTFOLDER)/$@/lib/libvc_.a $(SSLLIB)/$@/lib/libcrypto.a $(SSLLIB)/$@/lib/libssl.a
+	@rm $(PRODUCTFOLDER)/$@/lib/libvc_.a
 
 $(TMPFOLDER)/darwin-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
@@ -89,7 +93,7 @@ test: $(CURRENTARCH) test-$(CURRENTARCH)
 
 test-$(CURRENTARCH): $(TESTOFILES)
 	@mkdir -p $(dir $(TESTBIN))
-	$(CC) -lvc -L$(PRODUCTFOLDER)/$(CURRENTARCH)/lib -I$(SSLINCLUDE) -o $(TESTBIN) $^ $(SSLLIB)/$(CURRENTARCH)/lib/libcrypto.a $(SSLLIB)/$(CURRENTARCH)/lib/libssl.a
+	$(CC) -lvc -L$(PRODUCTFOLDER)/$(CURRENTARCH)/lib -o $(TESTBIN) $^
 
 $(TMPFOLDER)/$(CURRENTARCH)/$(TESTFOLDER)/%.o: $(TESTFOLDER)/%.c
 	@mkdir -p $(dir $@)
