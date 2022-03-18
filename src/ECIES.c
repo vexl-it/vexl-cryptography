@@ -7,15 +7,208 @@
 
 #include "ECIES.h"
 
-char *encrypt(KeyPair keys, char *message) {
-    EC_KEY *eckey = _KeyPair_get_EC_KEY(keys);
-
-    return message;
+void RAND_init(void) {
+	char buf[32];
+	FILE *fin = fopen("/dev/random","rb");
+	fread(buf, sizeof(buf), 1, fin);
+	fclose(fin);
+	RAND_seed(fin, 32);
 }
 
-char *decrypt(KeyPair keys, char *cipher) {
-    EC_KEY *eckey = _KeyPair_get_EC_KEY(keys);
+EC_POINT *EC_POINT_mult_BN(const EC_GROUP *group, EC_POINT *P, const EC_POINT *a, const BIGNUM *b, BN_CTX *ctx)
+{
+	EC_POINT *O = EC_POINT_new(group);
+	if (P == NULL) P = EC_POINT_new(group);
+
+	for(int i = BN_num_bits(b); i >= 0; i--) {
+		EC_POINT_dbl(group, P, P, ctx);
+		if (BN_is_bit_set(b, i))
+			EC_POINT_add(group, P, P, a, ctx);
+		else
+			EC_POINT_add(group, P, P, O, ctx);
+	}
+
+	return P;
+}
+
+int EC_KEY_public_derive_S(const EC_KEY *key, point_conversion_form_t fmt, BIGNUM *S, BIGNUM *R)
+{
+	BN_CTX *ctx = BN_CTX_new();
+	const EC_GROUP *group = EC_KEY_get0_group(key);
+	const EC_POINT *Kb = EC_KEY_get0_public_key(key);
+	BIGNUM *n = BN_new();
+	BIGNUM *r = BN_new();
+	EC_POINT *P = NULL;
+	EC_POINT *Rp = EC_POINT_new(group);
+	BIGNUM *Py = BN_new();
+	const EC_POINT *G = EC_GROUP_get0_generator(group);
+	int bits,ret=-1;
+	EC_GROUP_get_order(group, n, ctx);
+	bits = BN_num_bits(n);
+	BN_rand(r, bits, -1, 0);
+	/* calculate R = rG */
+	Rp = EC_POINT_mult_BN(group, Rp, G, r, ctx);
+	/* calculate S = Px, P = (Px,Py) = Kb R */
+	P = EC_POINT_mult_BN(group, P, Kb, r, ctx);
+	if (!EC_POINT_is_at_infinity(group, P)) {
+		EC_POINT_get_affine_coordinates_GF2m(group, P, S, Py, ctx);
+		EC_POINT_point2bn(group, Rp, fmt, R, ctx);
+		ret = 0;
+	}
+	BN_free(r);
+	BN_free(n);
+	BN_free(Py);
+	EC_POINT_free(P);
+	EC_POINT_free(Rp);
+	BN_CTX_free(ctx);
+	return ret;
+}
+
+int EC_KEY_private_derive_S(const EC_KEY *key, const BIGNUM *R, BIGNUM *S)
+{
+	int ret = -1;
+	BN_CTX *ctx = BN_CTX_new();
+	BIGNUM *n = BN_new();
+	BIGNUM *Py = BN_new();
+	const EC_GROUP *group = EC_KEY_get0_group(key);
+	EC_POINT *Rp = EC_POINT_bn2point(group, R, NULL, ctx);
+	const BIGNUM *kB = EC_KEY_get0_private_key(key);
+	EC_GROUP_get_order(group, n, ctx);
+	/* Calculate S = Px, P = (Px, Py) = R kB */
+	EC_POINT *P = EC_POINT_mult_BN(group, NULL, Rp, kB, ctx);
+	if (!EC_POINT_is_at_infinity(group, P)) {
+		EC_POINT_get_affine_coordinates_GF2m(group, P, S, Py, ctx);
+		ret = 0;
+	}
+	BN_free(n);
+	BN_free(Py);
+	EC_POINT_free(Rp);
+	EC_POINT_free(P);
+	BN_CTX_free(ctx);
+	return ret;
+}
+
+char *decipher(const EC_KEY *key,
+	const unsigned char *R_in, size_t R_len, 
+    const unsigned char *c_in, size_t c_len, 
+	const unsigned char *d_in, size_t d_len) {
+
+}
+
+
+int pbkdf2_encrypt(const unsigned char *password, const int password_len, const char *message, Cipher *cipher) {
+	const EVP_MD *md = EVP_sha1();
+	const EVP_CIPHER *evp_cipher = EVP_aes_256_cbc();
+	size_t ke_len = EVP_CIPHER_key_length(evp_cipher) + EVP_CIPHER_iv_length(evp_cipher);
+	size_t km_len = EVP_MD_block_size(md);
+	unsigned char ke_km[ke_len+km_len];
+
+	PKCS5_PBKDF2_HMAC((const char*)password, password_len, SALT, sizeof(SALT), 2000, md, ke_len+km_len, ke_km);
+
+	EVP_CIPHER_CTX *ectx = EVP_CIPHER_CTX_new();
+	cipher->cipherLen = 0;
+	
+    char *cipher_str = malloc(0);
+    int cipher_str_len = 0;
+    const int buff_size = 1024;
+    const int m_size = strlen(message)*sizeof(unsigned char);
+    int m_offset = 0;
+    char m_buffer[buff_size];
+    memset(m_buffer, 0, buff_size);
+    int o_len;
+    char o_buffer[buff_size + EVP_MAX_BLOCK_LENGTH];
+    memset(o_buffer, 0, buff_size + EVP_MAX_BLOCK_LENGTH);
+
+	EVP_EncryptInit_ex(ectx, evp_cipher, NULL, ke_km, ke_km + EVP_CIPHER_key_length(evp_cipher));
+
+    do {
+        int readlen = (m_offset + buff_size > m_size) ? m_size - m_offset : buff_size;
+        readlen = (readlen < 0) ? 0 : readlen;
+
+        for (int i = 0; i < readlen; i++) {
+            m_buffer[i] = message[m_offset + i];
+        }
+
+        EVP_EncryptUpdate(ectx, o_buffer, &o_len, m_buffer, buff_size);
+
+        cipher_str = (char *)realloc(cipher_str, cipher_str_len + o_len);
+        for (int i = 0; i < o_len; i++) {
+            cipher_str[cipher_str_len + i] = o_buffer[i];
+        }
+
+        cipher_str_len += o_len;
+        m_offset += readlen;
+    } while (m_offset < m_size);
+    
+	// EVP_EncryptUpdate(ectx, c_out + cipher->cipherLen, &outl, message, strlen(message)*sizeof(unsigned char));
+	// cipher->cipherLen += outl;
+
+
+    memset(o_buffer, 0, buff_size);
+    EVP_EncryptFinal_ex(ectx, o_buffer, &o_len);
+
+    cipher_str = (char *)realloc(cipher_str, cipher_str_len + o_len);
+    for (int i = 0; i < o_len; i++) {
+        cipher_str[cipher_str_len + i] = o_buffer[i];
+    }
+
+    cipher->cipher = cipher_str;
+	cipher->cipherLen = cipher_str_len;
+
+    unsigned char D[512];
+	unsigned int D_len;
+
+	/* calculate MAC */
+	HMAC(md, ke_km + ke_len, km_len, cipher->cipher, cipher->cipherLen, D, &D_len);
+
+	cipher->D_len = D_len;
+    cipher->D = malloc(D_len);
+    strcpy(cipher->D, D);
+}
+
+Cipher *ecies_encrypt(KeyPair keys, const char *message) {
+    Cipher *cipher = malloc(sizeof(Cipher));
+    EC_KEY *key = _KeyPair_get_EC_KEY(keys);
+    
+    BIGNUM *R = BN_new();
+	BIGNUM *S = BN_new();
+
+    //	Generates shared secret and corresponding public key
+	while(EC_KEY_public_derive_S(key, POINT_CONVERSION_COMPRESSED, S, R) != 0);
+
+    cipher->R_len = BN_num_bytes(R);
+    cipher->R = malloc(cipher->R_len);
+    BN_bn2bin(R, cipher->R);
+
+	size_t S_len = BN_num_bytes(S);
+	unsigned char password[S_len];
+	BN_bn2bin(S, password);
+    
+    pbkdf2_encrypt(password, S_len, message, cipher);
 
     return cipher;
+
+
+
+    // strcpy(cipher->D, D);
+    printf("cipher: %s\n", cipher->cipher);
+    printf("cipherLen: %d\n", cipher->cipherLen);
+    printf("R: %s\n", cipher->R);
+    printf("R_len: %d\n", cipher->R_len);
+    printf("D: %s\n", cipher->D);
+    printf("D_len: %d\n", cipher->D_len);
+
+    return cipher;
+}
+
+char *decrypt(KeyPair keys, Cipher *cipher) {
+    // printf("\n\n--decrypt \n");
+    EC_KEY *eckey = _KeyPair_get_EC_KEY(keys);
+    
+
+    return decipher(eckey, cipher->R, cipher->R_len, cipher->cipher, cipher->cipherLen, cipher->D, cipher->D_len);
+
+    // return cipher;
+    return NULL;
 }
 

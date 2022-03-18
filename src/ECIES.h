@@ -8,6 +8,8 @@
 #ifndef ECIES_h
 #define ECIES_h
 
+#define SALT (const unsigned char*)"vexlvexl"
+
 #include <stdio.h>
 #include <string.h>
 
@@ -29,7 +31,16 @@
 #include "model/Curve.h"
 #include "model/KeyPair.h"
 
-char *encrypt(KeyPair keys, char *message);
-char *decrypt(KeyPair keys, char *cipher);
+typedef struct {
+    char *cipher;
+    unsigned int cipherLen;
+    char *R;
+    unsigned int R_len;
+    char *D;
+    unsigned int D_len;
+} Cipher;
+
+Cipher *ecies_encrypt(KeyPair keys, const char *message);
+char *decrypt(KeyPair keys, Cipher *cipher);
 
 #endif
