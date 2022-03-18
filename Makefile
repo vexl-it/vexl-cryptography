@@ -1,49 +1,110 @@
+# folder structure:
+# 
+# ./src - source files for the library
+# ./tests - source files for tests 
+# ./product - outputfolder where everything is compiled
+#    |-<cpu architectures>
+#    |   |-lib/libvc.a - the static library
+#    |   |_inclure/vc/* - corresponding header files
+#    |
+#    |_tests/test - binary which runs the tests, build for current cpu architecture
+# 
+
 CC=gcc
 AR=ar
 
-ARCHITECTURES=darwin
-
-SSLINCLUDE=openssl/include
-
+TMPFOLDER=tmp
+PRODUCTFOLDER=product
 SRCFOLDER=src
-CFILES=$(foreach D,$(SRCFOLDER),$(wildcard $(D)/*.c))
-OFILES=$(patsubst %.c,%.o,$(CFILES))
-
 TESTFOLDER=tests
-TESTCFILES=$(foreach D,$(TESTFOLDER),$(wildcard $(D)/*.c))
-TESTOFILES=$(patsubst %.c,%.o,$(TESTCFILES))
-TESTBIN=product/tests/test
+OPENSSLFOLDER=openssl
+SSLINCLUDE=$(OPENSSLFOLDER)/include
+SSLLIB=$(OPENSSLFOLDER)/lib
+TESTBIN=$(PRODUCTFOLDER)/$(TESTFOLDER)/test
+ARCHITECTURES=darwin-x86_64 darwin-arm64
 
+# Compiler flags
+CFLAGS=-MP -MD -g -w
+
+# ARCH variables
+ARCHOFOLDERS=$(foreach ARCH,$(ARCHITECTURES),$(TMPFOLDER)/$(ARCH))
+CURRENTARCH=$(shell uname | tr A-Z a-z)-$(shell uname -m | tr A-Z a-z)
+
+# OpenSSL builds
+OPENSSLTARGETS=$(foreach ARCH, $(ARCHITECTURES), build-openssl-$(ARCH))
+
+# Library files
+SRCFOLDER=src
+CFILES=$(wildcard $(SRCFOLDER)/*.c) $(wildcard $(SRCFOLDER)/**/*.c)
+OFILES=\
+$(foreach ARCHFOLDER,$(ARCHOFOLDERS),\
+	$(foreach CFILE, $(CFILES), \
+		$(patsubst %.c,%.o,$(ARCHFOLDER)/$(CFILE)) \
+	)\
+)
+
+# Tests files
+TESTCFILES=$(foreach D,$(TESTFOLDER),$(wildcard $(D)/*.c))
+TESTOFILES=\
+$(foreach CFILE, $(TESTCFILES), \
+	$(patsubst %.c,%.o,$(TMPFOLDER)/$(CURRENTARCH)/$(CFILE)) \
+)
+
+# clean variables
 ALLCFILES= $(CFILES) $(TESTCFILES)
 DEPFILES=$(patsubst %.c,%.d,$(ALLCFILES))
 -include $(DEPFILES)
 
+build-current: build-openssl-$(CURRENTARCH) $(CURRENTARCH) test
 
-all: $(ARCHITECTURES) test
+all: $(OPENSSLTARGETS) $(ARCHITECTURES) test
 
-darwin: tmp/darwin/$(OFILES)
-	rm -Rf product/$@
-	mkdir -p product/$@/lib product/$@/include/vc
-	$(AR) rcs -v product/$@/lib/libvc.a $^
-	cp src/*.h product/$@/include/vc/
+$(OPENSSLTARGETS):
+	./build.sh --$(@:build-openssl-%=%)
 
-tmp/darwin/src/%.o: $(CFILES)
-	mkdir -p $(dir $@)
-	./build.sh --darwin
-	$(CC) -g -I$(SSLINCLUDE) -MP -MD -c -DBUILD_FOR_LIBRARY -o $@ $<
 
-test: darwin test-darwin
+darwin-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwin-x86_64/$(CFILE)))
+	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
+	$(AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc_.a $^
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc 
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc 
+	libtool -static -o $(PRODUCTFOLDER)/$@/lib/libvc.a $(PRODUCTFOLDER)/$@/lib/libvc_.a $(SSLLIB)/$@/lib/libcrypto.a $(SSLLIB)/$@/lib/libssl.a
+	@rm $(PRODUCTFOLDER)/$@/lib/libvc_.a
 
-test-darwin: tmp/darwin/$(TESTOFILES)
-	mkdir -p $(dir $(TESTBIN))
-	$(CC) -lvc -Lproduct/darwin/lib -g -I$(SSLINCLUDE) -o $(TESTBIN) $< product/darwin/lib/libvc.a openssl/lib/darwin/lib/libcrypto.a openssl/lib/darwin/lib/libssl.a
+$(TMPFOLDER)/darwin-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) -I$(SSLINCLUDE) $(CFLAGS) -c -DBUILD_FOR_LIBRARY -o $@ $< 
 
-tmp/darwin/tests/%.o: $(TESTCFILES)
-	mkdir -p $(dir $@)
-	$(CC) -Iproduct/darwin/include -MP -MD -c -o $@ $<
+
+
+darwin-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwin-arm64/$(CFILE)))
+	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
+	$(AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc_.a $^
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc 
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc 
+	libtool -static -o $(PRODUCTFOLDER)/$@/lib/libvc.a $(PRODUCTFOLDER)/$@/lib/libvc_.a $(SSLLIB)/$@/lib/libcrypto.a $(SSLLIB)/$@/lib/libssl.a
+	@rm $(PRODUCTFOLDER)/$@/lib/libvc_.a
+
+$(TMPFOLDER)/darwin-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) -I$(SSLINCLUDE) $(CFLAGS) -c -DBUILD_FOR_LIBRARY -o $@ $< 
+
+test: $(CURRENTARCH) test-$(CURRENTARCH)
+
+test-$(CURRENTARCH): $(TESTOFILES)
+	@mkdir -p $(dir $(TESTBIN))
+	$(CC) -lvc -L$(PRODUCTFOLDER)/$(CURRENTARCH)/lib -o $(TESTBIN) $^
+
+$(TMPFOLDER)/$(CURRENTARCH)/$(TESTFOLDER)/%.o: $(TESTFOLDER)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) -I$(PRODUCTFOLDER)/$(CURRENTARCH)/include $($(CFLAGS)) -c -o $@ $<
 
 run:
-	$(TESTBIN)
+	@$(TESTBIN)
 
 clean:
-	rm -rf $(TESTBIN) $(OFILES) $(TESTOFILES) $(DEPFILES) tmp product
+	rm -rf $(DEPFILES) $(TMPFOLDER) $(PRODUCTFOLDER)
+
+debug:
+	$(eval TARGET := 'build-openssl-sdafas')
+	@echo $(TARGET:build-openssl-%=%)

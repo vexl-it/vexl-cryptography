@@ -1,0 +1,154 @@
+//
+//  Curve.c
+//  vexl-cryptography
+//
+//  Created by Adam Salih on 16.03.2022.
+//
+
+#include "Curve.h"
+
+char *_get_group_name(Curve curve) {
+    switch (curve)
+    {
+    case secp112r1:
+        return "secp112r1";
+    case secp112r2:
+        return "secp112r2";
+    case secp128r1:
+        return "secp128r1";
+    case secp128r2:
+        return "secp128r2";
+    case secp160k1:
+        return "secp160k1";
+    case secp160r1:
+        return "secp160r1";
+    case secp160r2:
+        return "secp160r2";
+    case secp192k1:
+        return "secp192k1";
+    case secp224k1:
+        return "secp224k1";
+    case secp224r1:
+        return "secp224r1";
+    case secp256k1:
+        return "secp256k1";
+    case secp384r1:
+        return "secp384r1";
+    case secp521r1:
+        return "secp521r1";
+    case prime192v1:
+        return "prime192v1";
+    case prime192v2:
+        return "prime192v2";
+    case prime192v3:
+        return "prime192v3";
+    case prime239v1:
+        return "prime239v1";
+    case prime239v2:
+        return "prime239v2";
+    case prime239v3:
+        return "prime239v3";
+    case prime256v1:
+        return "prime256v1";
+    case sect113r1:
+        return "sect113r1";
+    case sect113r2:
+        return "sect113r2";
+    case sect131r1:
+        return "sect131r1";
+    case sect131r2:
+        return "sect131r2";
+    case sect163k1:
+        return "sect163k1";
+    case sect163r1:
+        return "sect163r1";
+    case sect163r2:
+        return "sect163r2";
+    case sect193r1:
+        return "sect193r1";
+    case sect193r2:
+        return "sect193r2";
+    case sect233k1:
+        return "sect233k1";
+    case sect233r1:
+        return "sect233r1";
+    case sect239k1:
+        return "sect239k1";
+    case sect283k1:
+        return "sect283k1";
+    case sect283r1:
+        return "sect283r1";
+    case sect409k1:
+        return "sect409k1";
+    case sect409r1:
+        return "sect409r1";
+    case sect571k1:
+        return "sect571k1";
+    case sect571r1:
+        return "sect571r1";
+    case c2pnb163v1:
+        return "c2pnb163v1";
+    case c2pnb163v2:
+        return "c2pnb163v2";
+    case c2pnb163v3:
+        return "c2pnb163v3";
+    case c2pnb176v1:
+        return "c2pnb176v1";
+    case c2tnb191v1:
+        return "c2tnb191v1";
+    case c2tnb191v2:
+        return "c2tnb191v2";
+    case c2tnb191v3:
+        return "c2tnb191v3";
+    case c2pnb208w1:
+        return "c2pnb208w1";
+    case c2tnb239v1:
+        return "c2tnb239v1";
+    case c2tnb239v2:
+        return "c2tnb239v2";
+    case c2tnb239v3:
+        return "c2tnb239v3";
+    case c2pnb272w1:
+        return "c2pnb272w1";
+    case c2pnb304w1:
+        return "c2pnb304w1";
+    case c2tnb359v1:
+        return "c2tnb359v1";
+    case c2pnb368w1:
+        return "c2pnb368w1";
+    case c2tnb431r1:
+        return "c2tnb431r1";
+    case brainpoolP160r1:
+        return "brainpoolP160r1";
+    case brainpoolP160t1:
+        return "brainpoolP160t1";
+    case brainpoolP192r1:
+        return "brainpoolP192r1";
+    case brainpoolP192t1:
+        return "brainpoolP192t1";
+    case brainpoolP224r1:
+        return "brainpoolP224r1";
+    case brainpoolP224t1:
+        return "brainpoolP224t1";
+    case brainpoolP256r1:
+        return "brainpoolP256r1";
+    case brainpoolP256t1:
+        return "brainpoolP256t1";
+    case brainpoolP320r1:
+        return "brainpoolP320r1";
+    case brainpoolP320t1:
+        return "brainpoolP320t1";
+    case brainpoolP384r1:
+        return "brainpoolP384r1";
+    case brainpoolP384t1:
+        return "brainpoolP384t1";
+    case brainpoolP512r1:
+        return "brainpoolP512r1";
+    case brainpoolP512t1:
+        return "brainpoolP512t1";
+    case SM2:
+        return "SM2";
+    default:
+        return NULL;
+    }
+}

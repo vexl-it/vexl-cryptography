@@ -9,7 +9,6 @@
 #define ECIES_h
 
 #include <stdio.h>
-#include <stdio.h>
 #include <string.h>
 
 #ifdef BUILD_FOR_LIBRARY
@@ -25,22 +24,12 @@
 
 #endif
 
-typedef enum {
-	secp224r1,
-  	secp384r1,
-  	secp521r1,
-} Curve;
+#include "common/Log.h"
+#include "common/OpenSSLHelper.h"
+#include "model/Curve.h"
+#include "model/KeyPair.h"
 
-typedef struct {
-	char *pemPrivateKey;
-	char *pemPublicKey;
-	Curve curve;
-} KeyPair;
-
-KeyPair generate_key_pair(Curve curve);
-void KeyPair_free(KeyPair KeyPair);
 char *encrypt(KeyPair keys, char *message);
-
-char *_get_group_name(Curve curve);
+char *decrypt(KeyPair keys, char *cipher);
 
 #endif
