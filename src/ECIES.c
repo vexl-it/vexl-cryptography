@@ -7,14 +7,6 @@
 
 #include "ECIES.h"
 
-void RAND_init(void) {
-	char buf[32];
-	FILE *fin = fopen("/dev/random","rb");
-	fread(buf, sizeof(buf), 1, fin);
-	fclose(fin);
-	RAND_seed(fin, 32);
-}
-
 EC_POINT *EC_POINT_mult_BN(const EC_GROUP *group, EC_POINT *P, const EC_POINT *a, const BIGNUM *b, BN_CTX *ctx)
 {
 	EC_POINT *O = EC_POINT_new(group);
@@ -172,7 +164,7 @@ char *pbkdf2_decrypt(const unsigned char *password, const int password_len, Ciph
     HMAC(md, ke_km + ke_len, km_len, cipher->cipher, cipher->cipherLen, dv_out, &dv_len);
 
     if (cipher->D_len != dv_len || memcmp(dv_out, cipher->D, dv_len) != 0) {
-        printf("MAC verification failed\n");
+        _error(6, "MAC verification failed\n");
         return NULL;
     }
 
@@ -220,7 +212,7 @@ char *ecies_decrypt(KeyPair keys, Cipher *cipher) {
     BIGNUM *S = BN_new();
 
     if (EC_KEY_private_derive_S(key, R, S) != 0) {
-        printf("Key derivation failed\n");
+        _error(5, "Key derivation failed\n");
         return NULL;
     }
 
