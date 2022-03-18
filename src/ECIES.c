@@ -88,66 +88,7 @@ int EC_KEY_private_derive_S(const EC_KEY *key, const BIGNUM *R, BIGNUM *S)
 	return ret;
 }
 
-char *decipher(const EC_KEY *key,
-	const unsigned char *R_in, size_t R_len, 
-    const unsigned char *c_in, size_t c_len, 
-	const unsigned char *d_in, size_t d_len) {
-    BIGNUM *R = BN_bin2bn(R_in, R_len, BN_new());
-    BIGNUM *S = BN_new();
-
-    if (EC_KEY_private_derive_S(key, R, S) != 0) {
-        printf("Key derivation failed\n");
-        return NULL;
-    }
-
-    printf("S_decipher = ");
-    BN_print_fp(stdout, S);
-    printf("\n");
-
-    size_t S_len = BN_num_bytes(S);
-    unsigned char password[S_len];
-    BN_bn2bin(S, password);
-
-    /* then we can move on to traditional crypto using pbkdf2 we generate keys */
-    const EVP_MD *md = EVP_sha1();
-    const EVP_CIPHER *cipher = EVP_aes_256_cbc();
-    size_t ke_len = EVP_CIPHER_key_length(cipher) + EVP_CIPHER_iv_length(cipher);
-    size_t km_len = EVP_MD_block_size(md);
-    unsigned char ke_km[ke_len + km_len];
-
-    unsigned char dc_out[c_len];
-    memset(dc_out, 0, c_len);
-    size_t dc_len = 0;
-    int outl = 0;
-
-    PKCS5_PBKDF2_HMAC((const char *) password, S_len, SALT, sizeof(SALT), 2000, md, ke_len + km_len, ke_km);
-
-    unsigned char dv_out[km_len];
-    unsigned int dv_len;
-    HMAC(md, ke_km + ke_len, km_len, c_in, c_len, dv_out, &dv_len);
-
-    if (d_len != dv_len || memcmp(dv_out, d_in, dv_len) != 0) {
-        printf("MAC verification failed\n");
-        return NULL;
-    }
-
-    EVP_CIPHER_CTX *ectx = EVP_CIPHER_CTX_new();
-
-    EVP_DecryptInit_ex(ectx, cipher, NULL, ke_km, ke_km + EVP_CIPHER_key_length(cipher));
-    EVP_DecryptUpdate(ectx, dc_out, &outl, c_in, c_len);
-    dc_len += outl;
-    EVP_DecryptFinal_ex(ectx, dc_out, &outl);
-    dc_len += outl;
-	dc_out[dc_len] = 0;
-
-    char *message = malloc(dc_len);
-    for (int i = 0; i < dc_len; ++i) {
-        message[i] = dc_out[i];
-    }
-    return message;
-}
-
-int pbkdf2_encrypt(const unsigned char *password, const int password_len, const char *message, Cipher *cipher) {
+void pbkdf2_encrypt(const unsigned char *password, const int password_len, const char *message, Cipher *cipher) {
 	const EVP_MD *md = EVP_sha1();
 	const EVP_CIPHER *evp_cipher = EVP_aes_256_cbc();
 	size_t ke_len = EVP_CIPHER_key_length(evp_cipher) + EVP_CIPHER_iv_length(evp_cipher);
@@ -186,14 +127,9 @@ int pbkdf2_encrypt(const unsigned char *password, const int password_len, const 
         for (int i = 0; i < o_len; i++) {
             cipher_str[cipher_str_len + i] = o_buffer[i];
         }
-
         cipher_str_len += o_len;
         m_offset += readlen;
     } while (m_offset < m_size);
-    
-	// EVP_EncryptUpdate(ectx, c_out + cipher->cipherLen, &outl, message, strlen(message)*sizeof(unsigned char));
-	// cipher->cipherLen += outl;
-
 
     memset(o_buffer, 0, buff_size);
     EVP_EncryptFinal_ex(ectx, o_buffer, &o_len);
@@ -206,7 +142,7 @@ int pbkdf2_encrypt(const unsigned char *password, const int password_len, const 
     cipher->cipher = cipher_str;
 	cipher->cipherLen = cipher_str_len;
 
-    unsigned char D[512];
+    unsigned char D[cipher->cipherLen];
 	unsigned int D_len;
 
 	/* calculate MAC */
@@ -215,6 +151,44 @@ int pbkdf2_encrypt(const unsigned char *password, const int password_len, const 
 	cipher->D_len = D_len;
     cipher->D = malloc(D_len);
     strcpy(cipher->D, D);
+}
+
+char *pbkdf2_decrypt(const unsigned char *password, const int password_len, Cipher *cipher) {
+    const EVP_MD *md = EVP_sha1();
+    const EVP_CIPHER *evp_cipher = EVP_aes_256_cbc();
+    size_t ke_len = EVP_CIPHER_key_length(evp_cipher) + EVP_CIPHER_iv_length(evp_cipher);
+    size_t km_len = EVP_MD_block_size(md);
+    unsigned char ke_km[ke_len + km_len];
+
+    unsigned char dc_out[cipher->cipherLen];
+    memset(dc_out, 0, cipher->cipherLen);
+    size_t dc_len = 0;
+    int outl = 0;
+
+    PKCS5_PBKDF2_HMAC((const char *) password, password_len, SALT, sizeof(SALT), 2000, md, ke_len + km_len, ke_km);
+
+    unsigned char dv_out[km_len];
+    unsigned int dv_len;
+    HMAC(md, ke_km + ke_len, km_len, cipher->cipher, cipher->cipherLen, dv_out, &dv_len);
+
+    if (cipher->D_len != dv_len || memcmp(dv_out, cipher->D, dv_len) != 0) {
+        printf("MAC verification failed\n");
+        return NULL;
+    }
+
+    EVP_CIPHER_CTX *ectx = EVP_CIPHER_CTX_new();
+    EVP_DecryptInit_ex(ectx, evp_cipher, NULL, ke_km, ke_km + EVP_CIPHER_key_length(evp_cipher));
+    EVP_DecryptUpdate(ectx, dc_out, &outl, cipher->cipher, cipher->cipherLen);
+    dc_len += outl;
+    EVP_DecryptFinal_ex(ectx, dc_out, &outl);
+    dc_len += outl;
+    dc_out[dc_len] = 0;
+
+    char *message = malloc(dc_len);
+    for (int i = 0; i < dc_len; ++i) {
+        message[i] = dc_out[i];
+    }
+    return message;
 }
 
 Cipher *ecies_encrypt(KeyPair keys, const char *message) {
@@ -238,46 +212,22 @@ Cipher *ecies_encrypt(KeyPair keys, const char *message) {
     pbkdf2_encrypt(password, S_len, message, cipher);
 
     return cipher;
-
-
-
-    // strcpy(cipher->D, D);
-    printf("cipher: %s\n", cipher->cipher);
-    printf("cipherLen: %d\n", cipher->cipherLen);
-    printf("R: %s\n", cipher->R);
-    printf("R_len: %d\n", cipher->R_len);
-    printf("D: %s\n", cipher->D);
-    printf("D_len: %d\n", cipher->D_len);
-
-    return cipher;
 }
 
-char *decrypt(KeyPair keys, Cipher *cipher) {
-    // printf("\n\n--decrypt \n");
-    EC_KEY *eckey = _KeyPair_get_EC_KEY(keys);
-    
+char *ecies_decrypt(KeyPair keys, Cipher *cipher) {
+    EC_KEY *key = _KeyPair_get_EC_KEY(keys);
+    BIGNUM *R = BN_bin2bn(cipher->R, cipher->R_len, BN_new());
+    BIGNUM *S = BN_new();
 
-    return decipher(eckey, cipher->R, cipher->R_len, cipher->cipher, cipher->cipherLen, cipher->D, cipher->D_len);
+    if (EC_KEY_private_derive_S(key, R, S) != 0) {
+        printf("Key derivation failed\n");
+        return NULL;
+    }
 
-    // return cipher;
-    return NULL;
-}
+    size_t S_len = BN_num_bytes(S);
+    unsigned char password[S_len];
+    BN_bn2bin(S, password);
 
-char *decrypt(KeyPair keys, Cipher *cipher) {
-    // printf("\n\n--decrypt \n");
-    EC_KEY *eckey = _KeyPair_get_EC_KEY(keys);
-    // char salt[] = "vexlvexl";
-
-    // printf("cipher: %s\n", cipher->cipher);
-    // printf("cipherLen: %d\n", cipher->cipherLen);
-    // printf("R: %s\n", cipher->R);
-    // printf("R_len: %d\n", cipher->R_len);
-    // printf("D: %s\n", cipher->D);
-    // printf("D_len: %d\n", cipher->D_len);
-
-    return decipher(eckey, cipher->R, cipher->R_len, cipher->cipher, cipher->cipherLen, cipher->D, cipher->D_len);
-
-    // return cipher;
-    return NULL;
+    return pbkdf2_decrypt(password, S_len, cipher);
 }
 

@@ -40,7 +40,10 @@ typedef struct {
     unsigned int D_len;
 } Cipher;
 
+void pbkdf2_encrypt(const unsigned char *password, const int password_len, const char *message, Cipher *cipher);
+char *pbkdf2_decrypt(const unsigned char *password, const int password_len, Cipher *cipher);
+
 Cipher *ecies_encrypt(KeyPair keys, const char *message);
-char *decrypt(KeyPair keys, Cipher *cipher);
+char *ecies_decrypt(KeyPair keys, Cipher *cipher);
 
 #endif

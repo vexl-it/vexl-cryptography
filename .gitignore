@@ -4,3 +4,4 @@ openssl/*
 product/*
 tmp/*
 .vscode/*
+.idea/*
