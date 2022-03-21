@@ -9,6 +9,8 @@
 
 KeyPair _EVP_PKEY_get_KeyPair(const EVP_PKEY *pkey) {
     KeyPair keys;
+    keys.pemPrivateKey = NULL;
+    keys.pemPublicKey = NULL;
 
     BIO *privBIO = BIO_new(BIO_s_mem());
     if (!PEM_write_bio_PrivateKey(privBIO, pkey, NULL, NULL, 0, 0, NULL)) {
@@ -23,10 +25,6 @@ KeyPair _EVP_PKEY_get_KeyPair(const EVP_PKEY *pkey) {
     }
     keys.pemPublicKey = _BIO_read_chars(pubBIO);
     BIO_free_all(pubBIO);
-
-    _log("Generated new keypair");
-    _log("private key: \n%s", keys.pemPrivateKey);
-    _log("public key: \n%s", keys.pemPublicKey);
 
     return keys;
 }
@@ -68,6 +66,10 @@ KeyPair generate_key_pair(const Curve curve) {
     const EC_GROUP *ecgrp = EC_KEY_get0_group(myecc);
 
     KeyPair keys = _EVP_PKEY_get_KeyPair(pkey);
+
+    _log("Generated new keypair");
+    _log("private key: \n%s", keys.pemPrivateKey);
+    _log("public key: \n%s", keys.pemPublicKey);
     
     EVP_PKEY_free(pkey);
     EC_KEY_free(myecc);
