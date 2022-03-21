@@ -87,7 +87,7 @@ void pbkdf2_encrypt(const unsigned char *password, const int password_len, const
 	size_t km_len = EVP_MD_block_size(md);
 	unsigned char ke_km[ke_len+km_len];
 
-	PKCS5_PBKDF2_HMAC((const char*)password, password_len, SALT, sizeof(SALT), 2000, md, ke_len+km_len, ke_km);
+	PKCS5_PBKDF2_HMAC((const char*)password, password_len, SALT, sizeof(SALT), PBKDF2ITER, md, ke_len+km_len, ke_km);
 
 	EVP_CIPHER_CTX *ectx = EVP_CIPHER_CTX_new();
 	cipher->cipherLen = 0;
@@ -157,7 +157,7 @@ char *pbkdf2_decrypt(const unsigned char *password, const int password_len, Ciph
     size_t dc_len = 0;
     int outl = 0;
 
-    PKCS5_PBKDF2_HMAC((const char *) password, password_len, SALT, sizeof(SALT), 2000, md, ke_len + km_len, ke_km);
+    PKCS5_PBKDF2_HMAC((const char *) password, password_len, SALT, sizeof(SALT), PBKDF2ITER, md, ke_len + km_len, ke_km);
 
     unsigned char dv_out[km_len];
     unsigned int dv_len;

@@ -9,6 +9,7 @@
 #define ECIES_h
 
 #define SALT (const unsigned char*)"vexlvexl"
+#define PBKDF2ITER 2000
 
 #include <stdio.h>
 #include <string.h>
