@@ -173,7 +173,7 @@ char *pbkdf2_decrypt(const unsigned char *password, const int password_len, Ciph
 }
 
 char *ecies_encrypt(KeyPair keys, const char *message) {
-    Cipher *cipher = malloc(sizeof(Cipher));
+    Cipher *cipher = cipher_new();
     EC_KEY *key = _KeyPair_get_EC_KEY(keys);
     
     BIGNUM *R = BN_new();
@@ -218,6 +218,13 @@ char *ecies_decrypt(KeyPair keys, char *encoded_cipher) {
     unsigned char password[S_len];
     BN_bn2bin(S, password);
 
-    return pbkdf2_decrypt(password, S_len, cipher);
+    char *encrypted = pbkdf2_decrypt(password, S_len, cipher);
+
+    BN_free(R);
+    BN_free(S);
+    EC_KEY_free(key);
+    cipher_free(cipher);
+
+    return encrypted;
 }
 
