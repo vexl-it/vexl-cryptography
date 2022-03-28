@@ -203,10 +203,19 @@ Cipher *ecies_encrypt(KeyPair keys, const char *message) {
     
     pbkdf2_encrypt(password, S_len, message, cipher);
 
-    return cipher;
+    char *encoded_cipher = cipher_encode(cipher);
+
+    BN_free(R);
+    BN_free(S);
+    EC_KEY_free(key);
+    cipher_free(cipher);
+
+    return encoded_cipher;
 }
 
-char *ecies_decrypt(KeyPair keys, Cipher *cipher) {
+char *ecies_decrypt(KeyPair keys, char *encoded_cipher) {
+    Cipher *cipher = cipher_decode(encoded_cipher);
+
     EC_KEY *key = _KeyPair_get_EC_KEY(keys);
     BIGNUM *R = BN_bin2bn(cipher->R, cipher->R_len, BN_new());
     BIGNUM *S = BN_new();
