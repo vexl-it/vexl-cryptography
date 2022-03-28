@@ -30,14 +30,21 @@ KeyPair _EVP_PKEY_get_KeyPair(const EVP_PKEY *pkey) {
 }
 
 EC_KEY *_KeyPair_get_EC_KEY(const KeyPair keys) {
-    BIO *bio = BIO_new_mem_buf((void*)keys.pemPrivateKey, strlen(keys.pemPrivateKey));
     EVP_PKEY *pkey = NULL;
     EC_KEY *eckey = NULL;
-    
-    PEM_read_bio_PrivateKey(bio, &pkey, NULL, NULL);
+
+    BIO *pub_bio = BIO_new_mem_buf((void*)keys.pemPublicKey, strlen(keys.pemPublicKey));
+    PEM_read_bio_PUBKEY(pub_bio, &pkey, NULL, NULL);
+
+    if (keys.pemPrivateKey != NULL) {
+        BIO *priv_bio = BIO_new_mem_buf((void*)keys.pemPrivateKey, strlen(keys.pemPrivateKey));
+        PEM_read_bio_PrivateKey(priv_bio, &pkey, NULL, NULL);
+        BIO_free_all(priv_bio);
+    }
+
     eckey = EVP_PKEY_get1_EC_KEY(pkey);
     
-    BIO_free_all(bio);
+    BIO_free_all(pub_bio);
     EVP_PKEY_free(pkey);
 
     return eckey;
