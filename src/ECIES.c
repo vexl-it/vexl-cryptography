@@ -139,7 +139,7 @@ void pbkdf2_encrypt(const unsigned char *password, const int password_len, const
 
 	cipher->D_len = D_len;
     cipher->D = malloc(D_len);
-    strcpy(cipher->D, D);
+    memcpy(cipher->D, D, D_len);
 }
 
 char *pbkdf2_decrypt(const unsigned char *password, const int password_len, Cipher *cipher) {
@@ -157,6 +157,7 @@ char *pbkdf2_decrypt(const unsigned char *password, const int password_len, Ciph
     PKCS5_PBKDF2_HMAC((const char *) password, password_len, SALT, sizeof(SALT), PBKDF2ITER, md, ke_len + km_len, ke_km);
 
     unsigned char dv_out[km_len];
+    memset(dv_out, 0, km_len);
     unsigned int dv_len;
     HMAC(md, ke_km + ke_len, km_len, cipher->cipher, cipher->cipherLen, dv_out, &dv_len);
 
