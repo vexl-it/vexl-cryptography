@@ -8,7 +8,10 @@
 
 #include <vc/ECIES.h>
 
-void test_performance(Curve curve);
+#include "Tools.h"
+
+void test_performance();
+void test_curve_performance(Curve curve);
 void test_encryption(Curve curve);
 
 #endif
