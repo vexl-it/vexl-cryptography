@@ -35,41 +35,39 @@ void test_performance(Curve curve) {
 
 void test_encryption(Curve curve) {
     KeyPair keys = generate_key_pair(curve);
-//    KeyPair pubkey = keys;
-//    pubkey.pemPrivateKey = NULL;
+    KeyPair pubkey = keys;
+    pubkey.pemPrivateKey = NULL;
 
-//    printf("Generated key pairs\n");
-//    printf("private key:\n%s\n", keys.pemPrivateKey);
-//    printf("public key:\n%s\n", keys.pemPublicKey);
 
-    const char sourceMessage[] = "{\"widget\": {"\
-"    \"debug\": \"on\","\
-"    \"window\": {"\
-"        \"title\": \"sourceMessage\","\
-"        \"name\": \"main_window\","\
-"        \"width\": 500,"\
-"        \"height\": 500"\
-"    },"\
-"    \"image\": { "\
-"        \"src\": \"Images/Sun.png\","\
-"        \"name\": \"sun1\","\
-"        \"hOffset\": 250,"\
-"        \"vOffset\": 250,"\
-"        \"alignment\": \"center\""\
-"    },"\
-"    \"text\": {"\
-"        \"data\": \"Click Here\","\
-"        \"size\": 36,"\
-"        \"style\": \"bold\","\
-"        \"name\": \"text1\","\
-"        \"hOffset\": 250,"\
-"        \"vOffset\": 100,"\
-"        \"alignment\": \"center\","\
-"        \"onMouseUp\": \"sun1.opacity = (sun1.opacity / 100) * 90;\""\
-"    }"\
-"}}";
+    const char sourceMessage[] =
+        "{\"widget\": {"\
+        "    \"debug\": \"on\","\
+        "    \"window\": {"\
+        "        \"title\": \"sourceMessage\","\
+        "        \"name\": \"main_window\","\
+        "        \"width\": 500,"\
+        "        \"height\": 500"\
+        "    },"\
+        "    \"image\": { "\
+        "        \"src\": \"Images/Sun.png\","\
+        "        \"name\": \"sun1\","\
+        "        \"hOffset\": 250,"\
+        "        \"vOffset\": 250,"\
+        "        \"alignment\": \"center\""\
+        "    },"\
+        "    \"text\": {"\
+        "        \"data\": \"Click Here\","\
+        "        \"size\": 36,"\
+        "        \"style\": \"bold\","\
+        "        \"name\": \"text1\","\
+        "        \"hOffset\": 250,"\
+        "        \"vOffset\": 100,"\
+        "        \"alignment\": \"center\","\
+        "        \"onMouseUp\": \"sun1.opacity = (sun1.opacity / 100) * 90;\""\
+        "    }"\
+        "}}";
 
-    Cipher *cipher = ecies_encrypt(keys, sourceMessage);
+    char *cipher = ecies_encrypt(pubkey, sourceMessage);
 
     char *message = ecies_decrypt(keys, cipher);
 

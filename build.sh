@@ -90,7 +90,7 @@ build() {
 mkdir -p $LIBFOLDER $TMPFOLDER
 cd $LIBFOLDER
 
-if [ -d $LIBFOLDER/include ]; then
+if [ -d $OPENSSLREPO ]; then
     echo "[OPENSSL] Using current OpenSSL repo"
 else 
     git clone git://git.openssl.org/openssl.git $OPENSSLREPO

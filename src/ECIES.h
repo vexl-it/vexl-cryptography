@@ -31,20 +31,12 @@
 #include "common/OpenSSLHelper.h"
 #include "model/Curve.h"
 #include "model/KeyPair.h"
-
-typedef struct {
-    char *cipher;
-    unsigned int cipherLen;
-    char *R;
-    unsigned int R_len;
-    char *D;
-    unsigned int D_len;
-} Cipher;
+#include "model/Cipher.h"
 
 void pbkdf2_encrypt(const unsigned char *password, const int password_len, const char *message, Cipher *cipher);
 char *pbkdf2_decrypt(const unsigned char *password, const int password_len, Cipher *cipher);
 
-Cipher *ecies_encrypt(KeyPair keys, const char *message);
-char *ecies_decrypt(KeyPair keys, Cipher *cipher);
+char *ecies_encrypt(KeyPair keys, const char *message);
+char *ecies_decrypt(KeyPair keys, char *encoded_cipher);
 
 #endif

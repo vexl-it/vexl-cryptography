@@ -7,8 +7,7 @@
 
 #include "ECIES.h"
 
-EC_POINT *EC_POINT_mult_BN(const EC_GROUP *group, EC_POINT *P, const EC_POINT *a, const BIGNUM *b, BN_CTX *ctx)
-{
+EC_POINT *EC_POINT_mult_BN(const EC_GROUP *group, EC_POINT *P, const EC_POINT *a, const BIGNUM *b, BN_CTX *ctx) {
 	EC_POINT *O = EC_POINT_new(group);
 	if (P == NULL) P = EC_POINT_new(group);
 
@@ -23,8 +22,7 @@ EC_POINT *EC_POINT_mult_BN(const EC_GROUP *group, EC_POINT *P, const EC_POINT *a
 	return P;
 }
 
-int EC_KEY_public_derive_S(const EC_KEY *key, point_conversion_form_t fmt, BIGNUM *S, BIGNUM *R)
-{
+int EC_KEY_public_derive_S(const EC_KEY *key, point_conversion_form_t fmt, BIGNUM *S, BIGNUM *R) {
 	BN_CTX *ctx = BN_CTX_new();
 	const EC_GROUP *group = EC_KEY_get0_group(key);
 	const EC_POINT *Kb = EC_KEY_get0_public_key(key);
@@ -56,8 +54,7 @@ int EC_KEY_public_derive_S(const EC_KEY *key, point_conversion_form_t fmt, BIGNU
 	return ret;
 }
 
-int EC_KEY_private_derive_S(const EC_KEY *key, const BIGNUM *R, BIGNUM *S)
-{
+int EC_KEY_private_derive_S(const EC_KEY *key, const BIGNUM *R, BIGNUM *S) {
 	int ret = -1;
 	BN_CTX *ctx = BN_CTX_new();
 	BIGNUM *n = BN_new();
@@ -109,16 +106,12 @@ void pbkdf2_encrypt(const unsigned char *password, const int password_len, const
         int readlen = (m_offset + buff_size > m_size) ? m_size - m_offset : buff_size;
         readlen = (readlen < 0) ? 0 : readlen;
 
-        for (int i = 0; i < readlen; i++) {
-            m_buffer[i] = message[m_offset + i];
-        }
+        memcpy(m_buffer, message+m_offset, readlen*sizeof(char));
 
         EVP_EncryptUpdate(ectx, o_buffer, &o_len, m_buffer, buff_size);
 
         cipher_str = (char *)realloc(cipher_str, cipher_str_len + o_len);
-        for (int i = 0; i < o_len; i++) {
-            cipher_str[cipher_str_len + i] = o_buffer[i];
-        }
+        memcpy(cipher_str+cipher_str_len, o_buffer, o_len*sizeof(char));
         cipher_str_len += o_len;
         m_offset += readlen;
     } while (m_offset < m_size);
@@ -127,9 +120,7 @@ void pbkdf2_encrypt(const unsigned char *password, const int password_len, const
     EVP_EncryptFinal_ex(ectx, o_buffer, &o_len);
 
     cipher_str = (char *)realloc(cipher_str, cipher_str_len + o_len);
-    for (int i = 0; i < o_len; i++) {
-        cipher_str[cipher_str_len + i] = o_buffer[i];
-    }
+    memcpy(cipher_str+cipher_str_len, o_buffer, o_len*sizeof(char));
 
     cipher->cipher = cipher_str;
 	cipher->cipherLen = cipher_str_len;
@@ -177,14 +168,12 @@ char *pbkdf2_decrypt(const unsigned char *password, const int password_len, Ciph
     dc_out[dc_len] = 0;
 
     char *message = malloc(dc_len);
-    for (int i = 0; i < dc_len; ++i) {
-        message[i] = dc_out[i];
-    }
+    memcpy(message, dc_out,dc_len);
     return message;
 }
 
-Cipher *ecies_encrypt(KeyPair keys, const char *message) {
-    Cipher *cipher = malloc(sizeof(Cipher));
+char *ecies_encrypt(KeyPair keys, const char *message) {
+    Cipher *cipher = cipher_new();
     EC_KEY *key = _KeyPair_get_EC_KEY(keys);
     
     BIGNUM *R = BN_new();
@@ -203,10 +192,19 @@ Cipher *ecies_encrypt(KeyPair keys, const char *message) {
     
     pbkdf2_encrypt(password, S_len, message, cipher);
 
-    return cipher;
+    char *encoded_cipher = cipher_encode(cipher);
+
+    BN_free(R);
+    BN_free(S);
+    EC_KEY_free(key);
+    cipher_free(cipher);
+
+    return encoded_cipher;
 }
 
-char *ecies_decrypt(KeyPair keys, Cipher *cipher) {
+char *ecies_decrypt(KeyPair keys, char *encoded_cipher) {
+    Cipher *cipher = cipher_decode(encoded_cipher);
+
     EC_KEY *key = _KeyPair_get_EC_KEY(keys);
     BIGNUM *R = BN_bin2bn(cipher->R, cipher->R_len, BN_new());
     BIGNUM *S = BN_new();
@@ -220,6 +218,13 @@ char *ecies_decrypt(KeyPair keys, Cipher *cipher) {
     unsigned char password[S_len];
     BN_bn2bin(S, password);
 
-    return pbkdf2_decrypt(password, S_len, cipher);
+    char *encrypted = pbkdf2_decrypt(password, S_len, cipher);
+
+    BN_free(R);
+    BN_free(S);
+    EC_KEY_free(key);
+    cipher_free(cipher);
+
+    return encrypted;
 }
 
