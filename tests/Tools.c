@@ -20,10 +20,6 @@ void log_performance_header() {
 
 void log_performance(char *curveName, clock_t key_gen_start, clock_t encryption_start, clock_t decryption_start, clock_t decryption_end) {
     printf(ANSI_COLOR_GREEN "🏃\t%s\t\t", curveName);
-//    va_list argptr;
-//    va_start(argptr, message);
-//    vfprintf(stdout, message, argptr);
-//    va_end(argptr);
 
     double key_gen_time_in_ms = ((double)(encryption_start - key_gen_start) / CLOCKS_PER_SEC) * 1000;
     double encryption_time_in_ms = ((double)(decryption_start - encryption_start) / CLOCKS_PER_SEC) * 1000;
