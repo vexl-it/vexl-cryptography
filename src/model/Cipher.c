@@ -32,9 +32,9 @@ void cipher_free(Cipher *cipher) {
     free(cipher);
 }
 
-char *_cipher_encode_len(int len, int *len_len) {
+char *_cipher_encode_len(const int len, int *out_len_len) {
     int tmp = len;
-    *len_len = 0;
+    int len_len = 0;
     int encode_len = 0;
     while (tmp > 0) {
         tmp = tmp / decimal_base;
@@ -43,10 +43,11 @@ char *_cipher_encode_len(int len, int *len_len) {
     tmp = len;
     char *digest = malloc(encode_len);
     while(tmp > 0) {
-        digest[encode_len - ((*len_len) * sizeof(char)) - 1] = decimals[tmp % decimal_base];
+        digest[encode_len - (len_len * sizeof(char)) - 1] = decimals[tmp % decimal_base];
         tmp = tmp / decimal_base;
-        *len_len += 1;
+        len_len += 1;
     }
+    *out_len_len = len_len;
     return digest;
 }
 
