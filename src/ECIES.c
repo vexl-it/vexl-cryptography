@@ -7,6 +7,12 @@
 
 #include "ECIES.h"
 
+void ecies_init() {
+    OpenSSL_add_all_algorithms();
+    ERR_load_crypto_strings();
+    base64_build_decoding_table();
+}
+
 EC_POINT *EC_POINT_mult_BN(const EC_GROUP *group, EC_POINT *P, const EC_POINT *a, const BIGNUM *b, BN_CTX *ctx) {
 	EC_POINT *O = EC_POINT_new(group);
 	if (P == NULL) P = EC_POINT_new(group);

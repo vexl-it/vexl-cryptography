@@ -21,7 +21,7 @@ char *base64_encode(const unsigned char *data, size_t input_length, size_t *outp
 
     *output_length = 4 * ((input_length + 2) / 3);
 
-    char *encoded_data = malloc(*output_length);
+    char *encoded_data = malloc(*output_length+1);
     if (encoded_data == NULL) return NULL;
 
     for (int i = 0, j = 0; i < input_length;) {
@@ -41,11 +41,13 @@ char *base64_encode(const unsigned char *data, size_t input_length, size_t *outp
     for (int i = 0; i < mod_table[input_length % 3]; i++)
         encoded_data[*output_length - 1 - i] = '=';
 
+    encoded_data[*output_length] = 0;
+
     return encoded_data;
 }
 
 
-void build_decoding_table() {
+void base64_build_decoding_table() {
     if (isSetup) return;
     for (int i = 0; i < 64; i++) {
         decoding_table[(unsigned char) encoding_table[i]] = i;
@@ -55,7 +57,7 @@ void build_decoding_table() {
 
 unsigned char *base64_decode(const char *data, size_t input_length, size_t *output_length) {
     if (data == NULL) return NULL;
-    build_decoding_table();
+    base64_build_decoding_table();
 
     if (input_length % 4 != 0) return NULL;
 
