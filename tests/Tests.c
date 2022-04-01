@@ -44,10 +44,11 @@ void test_performance() {
 
 void test_curve_performance(Curve curve) {
     int count = 1;
-    clock_t key_gen_start, encryption_start, decryption_start, decryption_end;
+    clock_t key_gen_start, encryption_start, decryption_start, ecdsa_sign_start, end;
     KeyPair keyPairs[count];
     char *ciphers[count];
     char *messages[count];
+    unsigned char *signatures[count];
 
     key_gen_start = clock();
     for (int i = 0; i < count; i++) {
@@ -64,15 +65,21 @@ void test_curve_performance(Curve curve) {
         log_progress("Decrypting: %d/%d", i+1,count);
         messages[i] = ecies_decrypt(keyPairs[i], ciphers[i]);
     }
-    decryption_end = clock();
+    ecdsa_sign_start = clock();
+    for (int i = 0; i < count; i++) {
+        log_progress("Decrypting: %d/%d", i+1,count);
+        signatures[i] = ecdsa_sign(keyPairs[i], ciphers[i], strlen(ciphers[i]));
+    }
+    end = clock();
 
     log_progress_end();
-    log_performance(_get_group_name(curve), key_gen_start, encryption_start, decryption_start, decryption_end);
+    log_performance(_get_group_name(curve), key_gen_start, encryption_start, decryption_start, ecdsa_sign_start, end);
 
     for (int i = 0; i < count; i++) {
         KeyPair_free(keyPairs[i]);
         free(ciphers[i]);
         free(messages[i]);
+        free(signatures[i]);
     }
 }
 
@@ -92,4 +99,23 @@ void test_encryption(Curve curve) {
 
 
     KeyPair_free(keys);
+}
+
+void test_digital_signature(Curve curve) {
+    log_message("Testing digital signature");
+
+    KeyPair privkey = generate_key_pair(curve);
+    KeyPair pubkey = privkey;
+    pubkey.pemPrivateKey = NULL;
+
+    int test_message_len = strlen(test_message);
+
+    unsigned char *sig = ecdsa_sign(privkey, test_message, test_message_len);
+    assert_not_null(sig, "Created digital signature");
+
+    bool valid = ecdsa_verify(privkey, test_message, test_message_len, sig);
+    assert_true(valid, "Successfully validated digital signature");
+
+//    Signature_free(sig);
+    KeyPair_free(privkey); // pubkey doesn't have to be freed
 }

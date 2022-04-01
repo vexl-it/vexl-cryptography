@@ -21,7 +21,7 @@
 #include <time.h>
 
 void log_performance_header();
-void log_performance(char *curveName, clock_t key_gen_start, clock_t encryption_start, clock_t decryption_start, clock_t decryption_end);
+void log_performance(char *curveName, clock_t key_gen_start, clock_t encryption_start, clock_t decryption_start, clock_t ecdsa_sign_start, clock_t end);
 void log_message(const char *message, ...);
 void log_progress(const char *message, ...);
 void log_progress_end();
@@ -29,6 +29,7 @@ void log_success(const char *message, ...);
 void log_error(const char *message, ...);
 
 bool assert_equals(const char *str1, const char *str2, const char *message);
+bool assert_true(int val, const char *message);
 bool assert_not_null(const void *ptr, const char *message);
 
 #endif

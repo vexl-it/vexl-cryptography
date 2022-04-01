@@ -15,16 +15,17 @@ void _print_time(double time_in_ms) {
 }
 
 void log_performance_header() {
-    printf(ANSI_COLOR_GREEN "\tCurve\t\t\tTotal time\t\tKeypair time\t\tEncryption time\t\tDecryption Time\n" ANSI_COLOR_RESET);
+    printf(ANSI_COLOR_GREEN "\tCurve\t\t\tTotal time\t\tKeypair time\t\tEncryption time\t\tDecryption time\t\tSigning time\n" ANSI_COLOR_RESET);
 }
 
-void log_performance(char *curveName, clock_t key_gen_start, clock_t encryption_start, clock_t decryption_start, clock_t decryption_end) {
+void log_performance(char *curveName, clock_t key_gen_start, clock_t encryption_start, clock_t decryption_start, clock_t ecdsa_sign_start, clock_t end) {
     printf(ANSI_COLOR_GREEN "🏃\t%s\t\t", curveName);
 
     double key_gen_time_in_ms = ((double)(encryption_start - key_gen_start) / CLOCKS_PER_SEC) * 1000;
     double encryption_time_in_ms = ((double)(decryption_start - encryption_start) / CLOCKS_PER_SEC) * 1000;
-    double decryption_time_in_ms = ((double)(decryption_end - decryption_start) / CLOCKS_PER_SEC) * 1000;
-    double total_time_in_ms = ((double)(decryption_end - encryption_start) / CLOCKS_PER_SEC) * 1000;
+    double decryption_time_in_ms = ((double)(ecdsa_sign_start - decryption_start) / CLOCKS_PER_SEC) * 1000;
+    double signing_time_in_ms = ((double)(end - ecdsa_sign_start) / CLOCKS_PER_SEC) * 1000;
+    double total_time_in_ms = ((double)(end - encryption_start) / CLOCKS_PER_SEC) * 1000;
 
     _print_time(total_time_in_ms);
     printf("\t\t");
@@ -33,6 +34,8 @@ void log_performance(char *curveName, clock_t key_gen_start, clock_t encryption_
     _print_time(encryption_time_in_ms);
     printf("\t\t");
     _print_time(decryption_time_in_ms);
+    printf("\t\t");
+    _print_time(signing_time_in_ms);
     printf("\n" ANSI_COLOR_RESET);
 }
 
@@ -79,6 +82,15 @@ void log_error(const char *message, ...) {
 bool assert_equals(const char *str1, const char *str2, const char *message) {
     if (strcmp(str1, str2) != 0) {
         log_error("Assertion error: Thesee two value do not equal\n\tstr1: %s\n\tstr2: %s", str1, str2);
+        return false;
+    }
+    log_success(message);
+    return true;
+}
+
+bool assert_true(int val, const char *message) {
+    if (!val) {
+        log_error("Assertion error: expression is not evaluated as true");
         return false;
     }
     log_success(message);
