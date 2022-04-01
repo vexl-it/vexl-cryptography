@@ -21,10 +21,10 @@ OPENSSLFOLDER=openssl
 SSLINCLUDE=$(OPENSSLFOLDER)/include
 SSLLIB=$(OPENSSLFOLDER)/lib
 TESTBIN=$(PRODUCTFOLDER)/$(TESTFOLDER)/test
-ARCHITECTURES=darwin-x86_64 darwin-arm64
+ARCHITECTURES=darwin-x86_64 darwin-arm64 ios-arm64
 
 # Compiler flags
-CFLAGS=-MP -MD -g -w
+CFLAGS=-MP -MD -g -w -O3
 
 # ARCH variables
 ARCHOFOLDERS=$(foreach ARCH,$(ARCHITECTURES),$(TMPFOLDER)/$(ARCH))
@@ -87,7 +87,20 @@ darwin-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwin
 
 $(TMPFOLDER)/darwin-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
-	$(CC) -I$(SSLINCLUDE) $(CFLAGS) -c -DBUILD_FOR_LIBRARY -o $@ $< 
+	$(CC) -I$(SSLINCLUDE) $(CFLAGS) -c -DBUILD_FOR_LIBRARY -o $@ $<
+
+
+ios-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/ios-arm64/$(CFILE)))
+	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
+	$(AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc_.a $^
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
+	libtool -static -o $(PRODUCTFOLDER)/$@/lib/libvc.a $(PRODUCTFOLDER)/$@/lib/libvc_.a $(SSLLIB)/$@/lib/libcrypto.a $(SSLLIB)/$@/lib/libssl.a
+	@rm $(PRODUCTFOLDER)/$@/lib/libvc_.a
+
+$(TMPFOLDER)/ios-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) -I$(SSLINCLUDE) $(CFLAGS) -c -DBUILD_FOR_LIBRARY -o $@ $< -target arm64-apple-ios
 
 test: $(CURRENTARCH) test-$(CURRENTARCH)
 

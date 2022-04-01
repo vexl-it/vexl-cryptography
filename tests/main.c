@@ -10,14 +10,12 @@
 #include "Tests.h"
 
 int main(void) {
-    printf("\n\n[VEXL]\n");
+    printf("[VEXL TESTS]\n");
 
+    ecies_init();
+
+    test_performance();
     Curve curve = secp224r1;
-
-    for (int i = 0; i < 69; i++) {
-        test_performance((Curve) i);
-    }
-
     test_encryption(curve);
     
     return 0;

@@ -33,6 +33,8 @@
 #include "model/KeyPair.h"
 #include "model/Cipher.h"
 
+void ecies_init();
+
 void pbkdf2_encrypt(const unsigned char *password, const int password_len, const char *message, Cipher *cipher);
 char *pbkdf2_decrypt(const unsigned char *password, const int password_len, Cipher *cipher);
 
