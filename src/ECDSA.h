@@ -21,7 +21,7 @@
 
 char *sha256_hash(const void *data, const int data_len);
 
-unsigned char *ecdsa_sign(const KeyPair keys, const void *data, const int data_len);
-bool ecdsa_verify(const KeyPair pubkey, const void *data, const int data_len, unsigned char *signature);
+char *ecdsa_sign(const KeyPair keys, const void *data, const int data_len);
+bool ecdsa_verify(const KeyPair pubkey, const void *data, const int data_len, char *signature);
 
 #endif

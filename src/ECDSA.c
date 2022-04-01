@@ -4,7 +4,7 @@
 
 #include "ECDSA.h"
 
-unsigned char *ecdsa_sign(const KeyPair keys, const void *data, const int data_len) {
+char *ecdsa_sign(const KeyPair keys, const void *data, const int data_len) {
     const char *digest = sha256_hash(data, data_len);
     const EC_KEY *eckey = _KeyPair_get_EC_KEY(keys);
 
@@ -14,31 +14,38 @@ unsigned char *ecdsa_sign(const KeyPair keys, const void *data, const int data_l
         return NULL;
     }
 
-    unsigned char *str_signature_tmp = NULL;
-    int sig_len = i2d_ECDSA_SIG(signature, &str_signature_tmp);
-    unsigned char *str_signature = malloc(sig_len);
-    memcpy(str_signature, str_signature_tmp, sig_len);
+    unsigned char *der_signature_tmp = NULL;
+    int der_signature_len = i2d_ECDSA_SIG(signature, &der_signature_tmp);
+    unsigned char *der_signature = malloc(der_signature_len);
+    memcpy(der_signature, der_signature_tmp, der_signature_len);
 
     free(digest);
     EC_KEY_free(eckey);
-    free(str_signature_tmp);
+
+    size_t tmp;
+    char *base64_signature = NULL;
+    base64_encode(der_signature, der_signature_len, &tmp, &base64_signature);
+
+    free(der_signature);
+    free(der_signature_tmp);
     ECDSA_SIG_free(signature);
 
-    return str_signature;
+    return base64_signature;
 }
 
-bool ecdsa_verify(const KeyPair pubkey, const void *data, const int data_len, unsigned char *sig) {
+bool ecdsa_verify(const KeyPair pubkey, const void *data, const int data_len, char *base64_signature) {
     const char *digest = sha256_hash(data, data_len);
     const EC_KEY *eckey = _KeyPair_get_EC_KEY(pubkey);
     if (digest == NULL)
         return false;
 
-    int sig_len = ECDSA_size(eckey);
+    int signature_len = ECDSA_size(eckey) - 1;
+    size_t base64_signature_len = base64_calculate_encoding_lenght(signature_len);
+    size_t tmp;
+    unsigned char *der_signature;
+    base64_decode(base64_signature, base64_signature_len, &tmp, &der_signature);
 
-    unsigned char *sig_cpy = malloc(sig_len);
-    unsigned char *tmp_ptr = sig_cpy;
-    memcpy(sig_cpy, sig, sig_len);
-    ECDSA_SIG *decoded_signature = d2i_ECDSA_SIG(NULL, &sig_cpy, sig_len);
+    ECDSA_SIG *decoded_signature = d2i_ECDSA_SIG(NULL, &der_signature, signature_len);
 
     int verify_status = ECDSA_do_verify(digest, SHA256_DIGEST_LENGTH, decoded_signature, eckey);
     const int verify_success = 1;

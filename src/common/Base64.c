@@ -16,13 +16,18 @@ static char decoding_table[256];
 static int isSetup = 0;
 static int mod_table[] = {0, 2, 1};
 
+size_t base64_calculate_encoding_lenght(size_t input_length) {
+    return 4 * ((input_length + 2) / 3);
+}
 
-char *base64_encode(const unsigned char *data, size_t input_length, size_t *output_length) {
 
-    *output_length = 4 * ((input_length + 2) / 3);
+void base64_encode(const unsigned char *data, size_t input_length, size_t *output_length, char **output) {
+
+    *output_length = base64_calculate_encoding_lenght(input_length);
 
     char *encoded_data = malloc(*output_length+1);
-    if (encoded_data == NULL) return NULL;
+    memset(encoded_data, 0, *output_length+1);
+    if (encoded_data == NULL) return;
 
     for (int i = 0, j = 0; i < input_length;) {
 
@@ -43,7 +48,7 @@ char *base64_encode(const unsigned char *data, size_t input_length, size_t *outp
 
     encoded_data[*output_length] = 0;
 
-    return encoded_data;
+    *output = encoded_data;
 }
 
 
@@ -55,18 +60,18 @@ void base64_build_decoding_table() {
     isSetup = 1;
 }
 
-unsigned char *base64_decode(const char *data, size_t input_length, size_t *output_length) {
-    if (data == NULL) return NULL;
+void base64_decode(const char *data, size_t input_length, size_t *output_length, unsigned char **output) {
+    if (data == NULL) return;
     base64_build_decoding_table();
 
-    if (input_length % 4 != 0) return NULL;
+    if (input_length % 4 != 0) return;
 
     *output_length = input_length / 4 * 3;
     if (data[input_length - 1] == '=') (*output_length)--;
     if (data[input_length - 2] == '=') (*output_length)--;
 
     unsigned char *decoded_data = malloc(*output_length);
-    if (decoded_data == NULL) return NULL;
+    if (decoded_data == NULL) return;
 
     for (int i = 0, j = 0; i < input_length;) {
 
@@ -85,7 +90,7 @@ unsigned char *base64_decode(const char *data, size_t input_length, size_t *outp
         if (j < *output_length) decoded_data[j++] = (triple >> 0 * 8) & 0xFF;
     }
 
-    return decoded_data;
+    *output = decoded_data;
 }
 
 

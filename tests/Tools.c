@@ -15,16 +15,17 @@ void _print_time(double time_in_ms) {
 }
 
 void log_performance_header() {
-    printf(ANSI_COLOR_GREEN "\tCurve\t\t\tTotal time\t\tKeypair time\t\tEncryption time\t\tDecryption time\t\tSigning time\n" ANSI_COLOR_RESET);
+    printf(ANSI_COLOR_GREEN "\tCurve\t\t\tTotal time\t\tKeypair time\t\tEncryption time\t\tDecryption time\t\tSigning time\t\tVerification time\n" ANSI_COLOR_RESET);
 }
 
-void log_performance(char *curveName, clock_t key_gen_start, clock_t encryption_start, clock_t decryption_start, clock_t ecdsa_sign_start, clock_t end) {
+void log_performance(char *curveName, clock_t key_gen_start, clock_t encryption_start, clock_t decryption_start, clock_t ecdsa_sign_start, clock_t ecdsa_verify_start, clock_t end) {
     printf(ANSI_COLOR_GREEN "🏃\t%s\t\t", curveName);
 
     double key_gen_time_in_ms = ((double)(encryption_start - key_gen_start) / CLOCKS_PER_SEC) * 1000;
     double encryption_time_in_ms = ((double)(decryption_start - encryption_start) / CLOCKS_PER_SEC) * 1000;
     double decryption_time_in_ms = ((double)(ecdsa_sign_start - decryption_start) / CLOCKS_PER_SEC) * 1000;
     double signing_time_in_ms = ((double)(end - ecdsa_sign_start) / CLOCKS_PER_SEC) * 1000;
+    double verification_time_in_ms = ((double)(end - ecdsa_sign_start) / CLOCKS_PER_SEC) * 1000;
     double total_time_in_ms = ((double)(end - encryption_start) / CLOCKS_PER_SEC) * 1000;
 
     _print_time(total_time_in_ms);
@@ -36,6 +37,8 @@ void log_performance(char *curveName, clock_t key_gen_start, clock_t encryption_
     _print_time(decryption_time_in_ms);
     printf("\t\t");
     _print_time(signing_time_in_ms);
+    printf("\t\t");
+    _print_time(verification_time_in_ms);
     printf("\n" ANSI_COLOR_RESET);
 }
 
