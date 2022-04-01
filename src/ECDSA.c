@@ -10,24 +10,21 @@ char *ecdsa_sign(const KeyPair keys, const void *data, const int data_len) {
 
     ECDSA_SIG *signature = ECDSA_do_sign(digest, SHA256_DIGEST_LENGTH, eckey);
     if (NULL == signature) {
-        printf("Failed to generate EC Signature\n");
+        _error(7, "Failed to generate EC Signature\n");
         return NULL;
     }
 
-    unsigned char *der_signature_tmp = NULL;
-    int der_signature_len = i2d_ECDSA_SIG(signature, &der_signature_tmp);
-    unsigned char *der_signature = malloc(der_signature_len);
-    memcpy(der_signature, der_signature_tmp, der_signature_len);
-
-    free(digest);
-    EC_KEY_free(eckey);
+    unsigned char *der_signature = NULL;
+    int der_signature_len = ECDSA_size(eckey);
+    i2d_ECDSA_SIG(signature, &der_signature);
 
     size_t tmp;
     char *base64_signature = NULL;
     base64_encode(der_signature, der_signature_len, &tmp, &base64_signature);
 
+    free(digest);
+    EC_KEY_free(eckey);
     free(der_signature);
-    free(der_signature_tmp);
     ECDSA_SIG_free(signature);
 
     return base64_signature;
@@ -39,7 +36,7 @@ bool ecdsa_verify(const KeyPair pubkey, const void *data, const int data_len, ch
     if (digest == NULL)
         return false;
 
-    int signature_len = ECDSA_size(eckey) - 1;
+    int signature_len = ECDSA_size(eckey);
     size_t base64_signature_len = base64_calculate_encoding_lenght(signature_len);
     size_t tmp;
     unsigned char *der_signature;
@@ -52,7 +49,6 @@ bool ecdsa_verify(const KeyPair pubkey, const void *data, const int data_len, ch
 
     free(digest);
     EC_KEY_free(eckey);
-    free(tmp_ptr);
     ECDSA_SIG_free(decoded_signature);
 
     return verify_status == verify_success;

@@ -20,7 +20,6 @@ size_t base64_calculate_encoding_lenght(size_t input_length) {
     return 4 * ((input_length + 2) / 3);
 }
 
-
 void base64_encode(const unsigned char *data, size_t input_length, size_t *output_length, char **output) {
 
     *output_length = base64_calculate_encoding_lenght(input_length);
@@ -92,7 +91,6 @@ void base64_decode(const char *data, size_t input_length, size_t *output_length,
 
     *output = decoded_data;
 }
-
 
 void base64_cleanup() {
     free(decoding_table);
