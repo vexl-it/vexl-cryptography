@@ -11,8 +11,9 @@
 #include <stdlib.h>
 
 void base64_build_decoding_table();
-char *base64_encode(const unsigned char *data, size_t input_length, size_t *output_length);
-unsigned char *base64_decode(const char *data, size_t input_length, size_t *output_length);
+size_t base64_calculate_encoding_lenght(size_t input_length);
+void base64_encode(const unsigned char *data, size_t input_length, size_t *output_length, char **output);
+void base64_decode(const char *data, size_t input_length, size_t *output_length, unsigned char **output);
 
 #endif
 
