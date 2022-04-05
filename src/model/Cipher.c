@@ -11,11 +11,11 @@ static int isSetup = 0;
 Cipher *cipher_new() {
     Cipher *cipher = malloc(sizeof(Cipher));
     cipher->cipher = NULL;
-    cipher->cipherLen = 0;
-    cipher->D = NULL;
-    cipher->D_len = 0;
-    cipher->R = NULL;
-    cipher->R_len = 0;
+    cipher->cipher_len = 0;
+    cipher->mac = NULL;
+    cipher->mac_len = 0;
+    cipher->public_key = NULL;
+    cipher->public_key_len = 0;
     return cipher;
 }
 
@@ -23,16 +23,22 @@ void cipher_free(Cipher *cipher) {
     if (cipher->cipher != NULL) {
         free(cipher->cipher);
     }
-    if (cipher->D != NULL) {
-        free(cipher->D);
+    if (cipher->mac != NULL) {
+        free(cipher->mac);
     }
-    if (cipher->R != NULL) {
-        free(cipher->R);
+    if (cipher->public_key != NULL) {
+        free(cipher->public_key);
     }
     free(cipher);
 }
 
 char *_cipher_encode_len(const int len, int *out_len_len) {
+    if (len == 0) {
+        *out_len_len = 1;
+        char *digits = malloc(1);
+        digits[0] = '0';
+        return digits;
+    }
     int tmp = len;
     int len_len = 0;
     int encode_len = 0;
@@ -54,9 +60,9 @@ char *_cipher_encode_len(const int len, int *out_len_len) {
 char *cipher_encode(Cipher *cipher) {
     int content_lens[3] = { 0, 0, 0 };
     char *content[] = { NULL, NULL, NULL };
-    base64_encode(cipher->cipher, cipher->cipherLen, &content_lens[0], &content[0]);
-    base64_encode(cipher->D, cipher->D_len, &content_lens[1], &content[1]);
-    base64_encode(cipher->R, cipher->R_len, &content_lens[2], &content[2]);
+    base64_encode(cipher->cipher, cipher->cipher_len, &content_lens[0], &content[0]);
+    base64_encode(cipher->mac, cipher->mac_len, &content_lens[1], &content[1]);
+    base64_encode(cipher->public_key, cipher->public_key_len, &content_lens[2], &content[2]);
 
     int spacer_count = 0;
     int lens_lens[3] = { 0, 0, 0 };
@@ -108,7 +114,7 @@ Cipher *cipher_decode(char *digest) {
     char cipher_base64[baseLen+1];
     memcpy(cipher_base64, digest+part_offset, baseLen);
     cipher_base64[baseLen] = 0;
-    base64_decode(cipher_base64, baseLen, &(cipher->cipherLen), &(cipher->cipher));
+    base64_decode(cipher_base64, baseLen, &(cipher->cipher_len), &(cipher->cipher));
     offset = part_offset+baseLen;
 
     _get_part_size(digest, offset, &sizeLen, &baseLen);
@@ -116,7 +122,7 @@ Cipher *cipher_decode(char *digest) {
     char R_base64[baseLen+1];
     memcpy(R_base64, digest+part_offset, baseLen);
     R_base64[baseLen] = 0;
-    base64_decode(R_base64, baseLen,  &(cipher->D_len), &(cipher->D));
+    base64_decode(R_base64, baseLen, &(cipher->mac_len), &(cipher->mac));
     offset = part_offset+baseLen;
 
     _get_part_size(digest, offset, &sizeLen, &baseLen);
@@ -124,7 +130,7 @@ Cipher *cipher_decode(char *digest) {
     char D_base64[baseLen+1];
     memcpy(D_base64, digest+part_offset, baseLen);
     D_base64[baseLen] = 0;
-    base64_decode(D_base64, baseLen,  &(cipher->R_len), &(cipher->R));
+    base64_decode(D_base64, baseLen, &(cipher->public_key_len), &(cipher->public_key));
 
     return cipher;
 }

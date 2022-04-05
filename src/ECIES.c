@@ -25,6 +25,8 @@ EC_POINT *EC_POINT_mult_BN(const EC_GROUP *group, EC_POINT *P, const EC_POINT *a
 			EC_POINT_add(group, P, P, O, ctx);
 	}
 
+    free(O);
+
 	return P;
 }
 
@@ -83,155 +85,89 @@ int EC_KEY_private_derive_S(const EC_KEY *key, const BIGNUM *R, BIGNUM *S) {
 	return ret;
 }
 
-void pbkdf2_encrypt(const unsigned char *password, const int password_len, const char *message, Cipher *cipher) {
-	const EVP_MD *md = EVP_sha1();
-	const EVP_CIPHER *evp_cipher = EVP_aes_256_cbc();
-	size_t ke_len = EVP_CIPHER_key_length(evp_cipher) + EVP_CIPHER_iv_length(evp_cipher);
-	size_t km_len = EVP_MD_block_size(md);
-	unsigned char ke_km[ke_len+km_len];
-
-	PKCS5_PBKDF2_HMAC((const char*)password, password_len, SALT, sizeof(SALT), PBKDF2ITER, md, ke_len+km_len, ke_km);
-
-	EVP_CIPHER_CTX *ectx = EVP_CIPHER_CTX_new();
-	cipher->cipherLen = 0;
-	
-    char *cipher_str = malloc(0);
-    int cipher_str_len = 0;
-    const int buff_size = 1024;
-    const int m_size = strlen(message)*sizeof(unsigned char);
-    int m_offset = 0;
-    char m_buffer[buff_size];
-    memset(m_buffer, 0, buff_size);
-    int o_len;
-    char o_buffer[buff_size + EVP_MAX_BLOCK_LENGTH];
-    memset(o_buffer, 0, buff_size + EVP_MAX_BLOCK_LENGTH);
-
-	EVP_EncryptInit_ex(ectx, evp_cipher, NULL, ke_km, ke_km + EVP_CIPHER_key_length(evp_cipher));
-
-    do {
-        int readlen = (m_offset + buff_size > m_size) ? m_size - m_offset : buff_size;
-        readlen = (readlen < 0) ? 0 : readlen;
-
-        memcpy(m_buffer, message+m_offset, readlen*sizeof(char));
-
-        EVP_EncryptUpdate(ectx, o_buffer, &o_len, m_buffer, buff_size);
-
-        cipher_str = (char *)realloc(cipher_str, cipher_str_len + o_len);
-        memcpy(cipher_str+cipher_str_len, o_buffer, o_len*sizeof(char));
-        cipher_str_len += o_len;
-        m_offset += readlen;
-    } while (m_offset < m_size);
-
-    memset(o_buffer, 0, buff_size);
-    EVP_EncryptFinal_ex(ectx, o_buffer, &o_len);
-
-    cipher_str = (char *)realloc(cipher_str, cipher_str_len + o_len);
-    memcpy(cipher_str+cipher_str_len, o_buffer, o_len*sizeof(char));
-
-    cipher->cipher = cipher_str;
-	cipher->cipherLen = cipher_str_len;
-
-    unsigned char D[cipher->cipherLen];
-	unsigned int D_len;
-
-	/* calculate MAC */
-	HMAC(md, ke_km + ke_len, km_len, cipher->cipher, cipher->cipherLen, D, &D_len);
-
-	cipher->D_len = D_len;
-    cipher->D = malloc(D_len);
-    memcpy(cipher->D, D, D_len);
+char *ecies_encrypt(KeyPair keys, const char *message) {
+    char *cipher = NULL;
+    _ecies_encrypt(keys, message, strlen(message), &cipher);
+    return cipher;
 }
 
-char *pbkdf2_decrypt(const unsigned char *password, const int password_len, Cipher *cipher) {
-    const EVP_MD *md = EVP_sha1();
-    const EVP_CIPHER *evp_cipher = EVP_aes_256_cbc();
-    size_t ke_len = EVP_CIPHER_key_length(evp_cipher) + EVP_CIPHER_iv_length(evp_cipher);
-    size_t km_len = EVP_MD_block_size(md);
-    unsigned char ke_km[ke_len + km_len];
-
-    unsigned char dc_out[cipher->cipherLen];
-    memset(dc_out, 0, cipher->cipherLen);
-    size_t dc_len = 0;
-    int outl = 0;
-
-    PKCS5_PBKDF2_HMAC((const char *) password, password_len, SALT, sizeof(SALT), PBKDF2ITER, md, ke_len + km_len, ke_km);
-
-    unsigned char dv_out[km_len];
-    memset(dv_out, 0, km_len);
-    unsigned int dv_len;
-    HMAC(md, ke_km + ke_len, km_len, cipher->cipher, cipher->cipherLen, dv_out, &dv_len);
-
-    if (cipher->D_len != dv_len || memcmp(dv_out, cipher->D, dv_len) != 0) {
-        _error(6, "MAC verification failed\n");
-        return NULL;
-    }
-
-    EVP_CIPHER_CTX *ectx = EVP_CIPHER_CTX_new();
-    EVP_DecryptInit_ex(ectx, evp_cipher, NULL, ke_km, ke_km + EVP_CIPHER_key_length(evp_cipher));
-    EVP_DecryptUpdate(ectx, dc_out, &outl, cipher->cipher, cipher->cipherLen);
-    dc_len += outl;
-    EVP_DecryptFinal_ex(ectx, dc_out, &outl);
-    dc_len += outl;
-    dc_out[dc_len] = 0;
-
-    char *message = malloc(dc_len);
-    memcpy(message, dc_out,dc_len);
+char *ecies_decrypt(KeyPair keys, const char *encoded_cipher) {
+    char *message = NULL;
+    int message_len = 0;
+    _ecies_decrypt(keys, encoded_cipher, &message, &message_len);
     return message;
 }
 
-char *ecies_encrypt(KeyPair keys, const char *message) {
+void _ecies_encrypt(KeyPair keys, const char *message, const int message_len, char **encoded_cipher) {
     Cipher *cipher = cipher_new();
     EC_KEY *key = _KeyPair_get_EC_KEY(keys);
-    
-    BIGNUM *R = BN_new();
-	BIGNUM *S = BN_new();
 
-    //	Generates shared secret and corresponding public key
+    BIGNUM *R = BN_new();
+    BIGNUM *S = BN_new();
+
+//    	Generates shared secret and corresponding public key
 	while(EC_KEY_public_derive_S(key, POINT_CONVERSION_COMPRESSED, S, R) != 0);
 
-    cipher->R_len = BN_num_bytes(R);
-    cipher->R = malloc(cipher->R_len);
-    BN_bn2bin(R, cipher->R);
+//    int public_key_len = BN_num_bytes(R);
+//    char *R_bin = malloc(public_key_len);
+//    BN_bn2bin(R, R_bin);
+    cipher->public_key_len = BN_num_bytes(R);
+    cipher->public_key = malloc(cipher->public_key_len);
+    BN_bn2bin(R, cipher->public_key);
+
+
+//    base64_encode(R_bin, public_key_len, &(cipher->public_key_len), &(cipher->R));
 
 	size_t S_len = BN_num_bytes(S);
-	unsigned char password[S_len];
-	BN_bn2bin(S, password);
-    
-    pbkdf2_encrypt(password, S_len, message, cipher);
+	unsigned char shared_secret[S_len];
+	BN_bn2bin(S, shared_secret);
 
-    char *encoded_cipher = cipher_encode(cipher);
+    _aes_encrypt(shared_secret, S_len, message, message_len, &(cipher->cipher), &(cipher->cipher_len));
+    _hmac_digest(shared_secret, S_len, cipher->cipher, cipher->cipher_len, &(cipher->mac), &(cipher->mac_len));
+
+    *encoded_cipher = cipher_encode(cipher);
 
     BN_free(R);
     BN_free(S);
     EC_KEY_free(key);
     cipher_free(cipher);
-
-    return encoded_cipher;
 }
 
-char *ecies_decrypt(KeyPair keys, char *encoded_cipher) {
+void _ecies_decrypt(KeyPair keys, const char *encoded_cipher, char **message, int *message_len) {
     Cipher *cipher = cipher_decode(encoded_cipher);
 
     EC_KEY *key = _KeyPair_get_EC_KEY(keys);
-    BIGNUM *R = BN_bin2bn(cipher->R, cipher->R_len, BN_new());
+    BIGNUM *R = BN_bin2bn(cipher->public_key, cipher->public_key_len, BN_new());
     BIGNUM *S = BN_new();
 
     if (EC_KEY_private_derive_S(key, R, S) != 0) {
         _error(5, "Key derivation failed\n");
-        return NULL;
+        *message = NULL;
+        *message_len = 0;
+        return;
     }
 
     size_t S_len = BN_num_bytes(S);
-    unsigned char password[S_len];
-    BN_bn2bin(S, password);
+    unsigned char shared_secret[S_len];
+    BN_bn2bin(S, shared_secret);
 
-    char *encrypted = pbkdf2_decrypt(password, S_len, cipher);
+    if (!_hmac_verify(shared_secret, S_len, cipher->cipher, cipher->cipher_len, cipher->mac, cipher->mac_len)) {
+        _error(5, "MAC verification failed\n");
+        *message = NULL;
+        *message_len = 0;
+        return;
+    }
+
+    char *decrypted;
+    int decrypted_len;
+    _aes_decrypt(shared_secret, S_len, cipher->cipher, cipher->cipher_len, &decrypted, &decrypted_len);
+
+    *message = decrypted;
+    *message_len = decrypted_len;
 
     BN_free(R);
     BN_free(S);
     EC_KEY_free(key);
     cipher_free(cipher);
-
-    return encrypted;
 }
 

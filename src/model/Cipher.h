@@ -12,11 +12,11 @@
 
 typedef struct {
     char *cipher;
-    unsigned int cipherLen;
-    char *R;
-    unsigned int R_len;
-    char *D;
-    unsigned int D_len;
+    unsigned int cipher_len;
+    char *public_key;
+    unsigned int public_key_len;
+    char *mac;
+    unsigned int mac_len;
 } Cipher;
 
 Cipher *cipher_new();
