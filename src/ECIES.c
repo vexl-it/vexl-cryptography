@@ -105,18 +105,11 @@ void _ecies_encrypt(KeyPair keys, const char *message, const int message_len, ch
     BIGNUM *R = BN_new();
     BIGNUM *S = BN_new();
 
-//    	Generates shared secret and corresponding public key
 	while(EC_KEY_public_derive_S(key, POINT_CONVERSION_COMPRESSED, S, R) != 0);
 
-//    int public_key_len = BN_num_bytes(R);
-//    char *R_bin = malloc(public_key_len);
-//    BN_bn2bin(R, R_bin);
     cipher->public_key_len = BN_num_bytes(R);
     cipher->public_key = malloc(cipher->public_key_len);
     BN_bn2bin(R, cipher->public_key);
-
-
-//    base64_encode(R_bin, public_key_len, &(cipher->public_key_len), &(cipher->R));
 
 	size_t S_len = BN_num_bytes(S);
 	unsigned char shared_secret[S_len];
