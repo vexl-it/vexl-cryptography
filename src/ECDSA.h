@@ -17,7 +17,7 @@
 #endif
 
 #include "model/KeyPair.h"
-#include "sha.h"
+#include "SHA.h"
 
 char *ecdsa_sign(const KeyPair keys, const void *data, const int data_len);
 bool ecdsa_verify(const KeyPair pubkey, const void *data, const int data_len, char *signature);

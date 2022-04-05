@@ -2,7 +2,7 @@
 // Created by Adam Salih on 31.03.2022.
 //
 
-#include "sha.h"
+#include "SHA.h"
 
 char *sha256_hash(const void *data, const int data_len) {
     SHA256_CTX context;
