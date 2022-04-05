@@ -1,21 +1,12 @@
 stages:
   - build
-  - test
 
 build:
   stage: build
   tags: [ios]
   allow_failure: false
   only:
-    - devel
+    - branches
   script:
     - make
-
-test:
-  stage: test
-  tags: [ios]
-  allow_failure: false
-  only:
-    - devel
-  script:
     - make run
