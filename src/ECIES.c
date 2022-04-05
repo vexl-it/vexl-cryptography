@@ -118,6 +118,7 @@ void _ecies_encrypt(KeyPair keys, const char *message, const int message_len, ch
     _aes_encrypt(shared_secret, S_len, message, message_len, &(cipher->cipher), &(cipher->cipher_len));
     _hmac_digest(shared_secret, S_len, cipher->cipher, cipher->cipher_len, &(cipher->mac), &(cipher->mac_len));
 
+    // TODO: Optimise double base64 encoding. The aes and hmac both encode the cipher into base64, which then cipher_encode also encodes into base64.
     *encoded_cipher = cipher_encode(cipher);
 
     BN_free(R);
