@@ -5,16 +5,17 @@
 #ifndef BASE64_H
 #define BASE64_H
 
-#ifdef BUILD_FOR_LIBRARY
-
 #include <stdint.h>
 #include <stdlib.h>
 
+
+#ifdef BUILD_FOR_LIBRARY
 void base64_build_decoding_table();
 size_t base64_calculate_encoding_lenght(size_t input_length);
+#endif
+
 void base64_encode(const unsigned char *data, size_t input_length, size_t *output_length, char **output);
 void base64_decode(const char *data, size_t input_length, size_t *output_length, unsigned char **output);
 
-#endif
 
 #endif
