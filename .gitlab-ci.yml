@@ -1,0 +1,12 @@
+stages:
+  - build
+
+build:
+  stage: build
+  tags: [ios]
+  allow_failure: false
+  only:
+    - branches
+  script:
+    - make
+    - make run
