@@ -8,8 +8,8 @@
 
 #include <vc/ECIES.h>
 #include <vc/ECDSA.h>
-#include <vc/common/Base64.h>
 
+#include "TestConstants.h"
 #include "Tools.h"
 
 void test_performance();
