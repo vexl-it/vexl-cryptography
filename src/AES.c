@@ -69,9 +69,6 @@ void _aes_encrypt(const char *password, const int password_len, const char *mess
     EVP_CIPHER_free(evp_cipher);
     EVP_MD_free(md);
     free(cipher_str);
-
-//    *cipher = cipher_str;
-//    *cipher_len = cipher_str_len;
 }
 
 void _aes_decrypt(const char *password, const int password_len, const char *base64_cipher, const int base64_cipher_len, char **message, int *message_len) {

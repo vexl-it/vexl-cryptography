@@ -7,6 +7,7 @@
 
 #include "Tests.h"
 
+char password[] = "Password123";
 const char test_message[] = "{\"widget\": {"\
         "    \"debug\": \"on\","\
         "    \"window\": {"\
@@ -89,7 +90,32 @@ void test_curve_performance(Curve curve) {
     }
 }
 
-void test_encryption(Curve curve) {
+void test_aes() {
+    log_message("Testing AES symetric encryption");
+
+    char *cipher = aes_encrypt(password, test_message);
+    assert_not_null(cipher, "Encrypted message");
+
+    char *message = aes_decrypt(password, cipher);
+    assert_equals(message, test_message, "Decrypted content match");
+
+    free(cipher);
+    free(message);
+}
+
+void test_hmac() {
+    log_message("Testing hmac");
+
+    char *mac = hmac_digest(password, test_message);
+    assert_not_null(mac, "Created cryptographic checksum");
+
+    bool valid = hmac_verify(password, test_message, mac);
+    assert_true(valid, "Checksum matches");
+
+    free(mac);
+}
+
+void test_ecies(Curve curve) {
     log_message("Testing encryption");
 
     KeyPair keys = generate_key_pair(curve);
@@ -98,15 +124,18 @@ void test_encryption(Curve curve) {
 
     char *cipher = ecies_encrypt(pubkey, test_message);
     assert_not_null(cipher, "Encrypted test message");
+
     char *message = ecies_decrypt(keys, cipher);
     assert_not_null(message, "Decrypted test message");
 
     assert_equals(message, test_message, "Encrypted and decrypted data match");
 
     KeyPair_free(keys);
+    free(cipher);
+    free(message);
 }
 
-void test_digital_signature(Curve curve) {
+void test_ecdsa(Curve curve) {
     log_message("Testing digital signature");
 
     KeyPair privkey = generate_key_pair(curve);
@@ -115,11 +144,12 @@ void test_digital_signature(Curve curve) {
 
     int test_message_len = strlen(test_message);
 
-    char *sig = ecdsa_sign(privkey, test_message, test_message_len);
-    assert_not_null(sig, "Created digital signature");
+    char *signature = ecdsa_sign(privkey, test_message, test_message_len);
+    assert_not_null(signature, "Created digital signature");
 
-    bool valid = ecdsa_verify(privkey, test_message, test_message_len, sig);
+    bool valid = ecdsa_verify(privkey, test_message, test_message_len, signature);
     assert_true(valid, "Successfully validated digital signature");
 
     KeyPair_free(privkey); // pubkey doesn't have to be freed
+    free(signature);
 }

@@ -8,12 +8,15 @@
 
 #include <vc/ECIES.h>
 #include <vc/ECDSA.h>
+#include <vc/common/Base64.h>
 
 #include "Tools.h"
 
 void test_performance();
 void test_curve_performance(Curve curve);
-void test_encryption(Curve curve);
-void test_digital_signature(Curve curve);
+void test_aes();
+void test_hmac();
+void test_ecies(Curve curve);
+void test_ecdsa(Curve curve);
 
 #endif
