@@ -15,28 +15,28 @@ bool hmac_verify(const char *password, const char *message, const char *digest) 
     return _hmac_verify(password, strlen(password), message, strlen(message), digest, strlen(digest));
 }
 
-void _hmac_digest(const char *password, const int password_len, const char *message, const int message_len, char **digest, int *digest_len) {
+void _hmac_digest(const char *password, const int password_len, const char *message, const int message_len, char **mac, int *mac_len) {
     const EVP_MD *md = EVP_sha1();
     const EVP_CIPHER *evp_cipher = EVP_aes_256_gcm();
     size_t ke_len = EVP_CIPHER_key_length(evp_cipher) + EVP_CIPHER_iv_length(evp_cipher);
     size_t km_len = EVP_MD_block_size(md);
     unsigned char ke_km[ke_len+km_len];
-    unsigned char tmp_digest[message_len];
-    int tmp_digest_len;
+    unsigned char tmp_mac[message_len];
+    int tmp_mac_len;
 
     PKCS5_PBKDF2_HMAC(password, password_len, SALT, sizeof(SALT), PBKDF2ITER, md, ke_len+km_len, ke_km);
-    HMAC(md, ke_km + ke_len, km_len, message, message_len, tmp_digest, &tmp_digest_len);
+    HMAC(md, ke_km + ke_len, km_len, message, message_len, tmp_mac, &tmp_mac_len);
 
     EVP_CIPHER_free(evp_cipher);
     EVP_MD_free(md);
 
-    base64_encode(tmp_digest, tmp_digest_len, digest_len, digest);
+    base64_encode(tmp_mac, tmp_mac_len, mac_len, mac);
 }
 
-bool _hmac_verify(const char *password, const int password_len, const char *message, const int message_len, const char *base64_digest, const int base64_digest_len) {
-    unsigned char *digest = NULL;
-    int digest_len = 0;
-    base64_decode(base64_digest, base64_digest_len, &digest_len, &digest);
+bool _hmac_verify(const char *password, const int password_len, const char *message, const int message_len, const char *base64_mac, const int base64_mac_len) {
+    unsigned char *mac = NULL;
+    int mac_len = 0;
+    base64_decode(base64_mac, base64_mac_len, &mac_len, &mac);
 
     const EVP_MD *md = EVP_sha1();
     const EVP_CIPHER *evp_cipher = EVP_aes_256_gcm();
@@ -52,9 +52,9 @@ bool _hmac_verify(const char *password, const int password_len, const char *mess
 
     HMAC(md, ke_km + ke_len, km_len, message, message_len, dv_out, &dv_len);
 
-    bool verified = digest_len == dv_len;
+    bool verified = mac_len == dv_len;
     if (verified)
-        verified = verified && memcmp(dv_out, digest, dv_len) == 0;
+        verified = verified && memcmp(dv_out, mac, dv_len) == 0;
 
     EVP_CIPHER_free(evp_cipher);
     EVP_MD_free(md);
