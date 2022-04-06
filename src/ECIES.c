@@ -107,9 +107,11 @@ void _ecies_encrypt(KeyPair keys, const char *message, const int message_len, ch
 
 	while(EC_KEY_public_derive_S(key, POINT_CONVERSION_COMPRESSED, S, R) != 0);
 
-    cipher->public_key_len = BN_num_bytes(R);
-    cipher->public_key = malloc(cipher->public_key_len);
-    BN_bn2bin(R, cipher->public_key);
+    int pk_len = BN_num_bytes(R);
+    char pk[pk_len];
+    BN_bn2bin(R, pk);
+
+    base64_encode(pk, pk_len, &(cipher->public_key_len), &(cipher->public_key));
 
 	size_t S_len = BN_num_bytes(S);
 	unsigned char shared_secret[S_len];
@@ -118,7 +120,6 @@ void _ecies_encrypt(KeyPair keys, const char *message, const int message_len, ch
     _aes_encrypt(shared_secret, S_len, message, message_len, &(cipher->cipher), &(cipher->cipher_len));
     _hmac_digest(shared_secret, S_len, cipher->cipher, cipher->cipher_len, &(cipher->mac), &(cipher->mac_len));
 
-    // TODO: Optimise double base64 encoding. The aes and hmac both encode the cipher into base64, which then cipher_encode also encodes into base64.
     *encoded_cipher = cipher_encode(cipher);
 
     BN_free(R);
@@ -130,8 +131,12 @@ void _ecies_encrypt(KeyPair keys, const char *message, const int message_len, ch
 void _ecies_decrypt(KeyPair keys, const char *encoded_cipher, char **message, int *message_len) {
     Cipher *cipher = cipher_decode(encoded_cipher);
 
+    unsigned char *pk;
+    int pk_len;
+    base64_decode(cipher->public_key, cipher->public_key_len, &pk_len, &pk);
+
     EC_KEY *key = _KeyPair_get_EC_KEY(keys);
-    BIGNUM *R = BN_bin2bn(cipher->public_key, cipher->public_key_len, BN_new());
+    BIGNUM *R = BN_bin2bn(pk, pk_len, BN_new());
     BIGNUM *S = BN_new();
 
     if (EC_KEY_private_derive_S(key, R, S) != 0) {

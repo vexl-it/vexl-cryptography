@@ -58,11 +58,8 @@ char *_cipher_encode_len(const int len, int *out_len_len) {
 }
 
 char *cipher_encode(Cipher *cipher) {
-    int content_lens[3] = { 0, 0, 0 };
-    char *content[] = { NULL, NULL, NULL };
-    base64_encode(cipher->cipher, cipher->cipher_len, &content_lens[0], &content[0]);
-    base64_encode(cipher->mac, cipher->mac_len, &content_lens[1], &content[1]);
-    base64_encode(cipher->public_key, cipher->public_key_len, &content_lens[2], &content[2]);
+    int content_lens[3] = { cipher->cipher_len, cipher->mac_len, cipher->public_key_len };
+    char *content[] = { cipher->cipher, cipher->mac, cipher->public_key };
 
     int spacer_count = 0;
     int lens_lens[3] = { 0, 0, 0 };
@@ -111,26 +108,23 @@ Cipher *cipher_decode(char *digest) {
 
     _get_part_size(digest, offset, &sizeLen, &baseLen);
     part_offset = offset+sizeLen+1;
-    char cipher_base64[baseLen+1];
-    memcpy(cipher_base64, digest+part_offset, baseLen);
-    cipher_base64[baseLen] = 0;
-    base64_decode(cipher_base64, baseLen, &(cipher->cipher_len), &(cipher->cipher));
+    cipher->cipher = malloc(baseLen);
+    cipher->cipher_len = baseLen;
+    memcpy(cipher->cipher, digest+part_offset, baseLen);
     offset = part_offset+baseLen;
 
     _get_part_size(digest, offset, &sizeLen, &baseLen);
     part_offset = offset+sizeLen+1;
-    char R_base64[baseLen+1];
-    memcpy(R_base64, digest+part_offset, baseLen);
-    R_base64[baseLen] = 0;
-    base64_decode(R_base64, baseLen, &(cipher->mac_len), &(cipher->mac));
+    cipher->mac = malloc(baseLen);
+    cipher->mac_len = baseLen;
+    memcpy(cipher->mac, digest+part_offset, baseLen);
     offset = part_offset+baseLen;
 
     _get_part_size(digest, offset, &sizeLen, &baseLen);
     part_offset = offset+sizeLen+1;
-    char D_base64[baseLen+1];
-    memcpy(D_base64, digest+part_offset, baseLen);
-    D_base64[baseLen] = 0;
-    base64_decode(D_base64, baseLen, &(cipher->public_key_len), &(cipher->public_key));
+    cipher->public_key = malloc(baseLen);
+    cipher->public_key_len = baseLen;
+    memcpy(cipher->public_key, digest+part_offset, baseLen);
 
     return cipher;
 }

@@ -15,11 +15,11 @@ void _print_time(double time_in_ms) {
 }
 
 void log_asymetric_performance_header() {
-    printf(ANSI_COLOR_GREEN "\tCurve\t\t\tTotal time\t\tKeypair time\t\tEncryption time\t\tDecryption time\t\tSigning time\t\tVerification time\n" ANSI_COLOR_RESET);
+    printf(ANSI_COLOR_GREEN "Curve\t\t\tTotal time\t\tKeypair time\t\tEncryption time\t\tDecryption time\t\tSigning time\t\tVerification time\n" ANSI_COLOR_RESET);
 }
 
 void log_asymetric_performance(char *curveName, clock_t key_gen_start, clock_t encryption_start, clock_t decryption_start, clock_t ecdsa_sign_start, clock_t ecdsa_verify_start, clock_t end) {
-    printf(ANSI_COLOR_GREEN "\t%s\t\t", curveName);
+    printf(ANSI_COLOR_GREEN "%s\t\t", curveName);
 
     double key_gen_time_in_ms = ((double)(encryption_start - key_gen_start) / CLOCKS_PER_SEC) * 1000;
     double encryption_time_in_ms = ((double)(decryption_start - encryption_start) / CLOCKS_PER_SEC) * 1000;
