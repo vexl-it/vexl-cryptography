@@ -1,5 +1,6 @@
 stages:
   - build
+  - test
 
 build:
   stage: build
@@ -10,3 +11,12 @@ build:
   script:
     - make
     - make run
+
+test-job:
+  stage: test
+  tags: [ios]
+  script:
+    - export TEST='success'
+  after_script:
+    - echo $TEST
+
