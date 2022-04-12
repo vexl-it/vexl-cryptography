@@ -7,9 +7,7 @@ build:
   tags: [ios]
   allow_failure: false
   only:
-    - branches
-  rules:
-    - if: $CI_PIPELINE_SOURCE == 'merge_request_event'
+    - merge_requests
   script:
     - make
     - make run
