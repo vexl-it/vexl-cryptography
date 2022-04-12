@@ -78,8 +78,7 @@ void test_symetric_performance(int count) {
     }
 }
 
-void test_performance() {
-    int count = 1;
+void test_performance(int count) {
     log_message("Running performance with %d iterations", count);
 
     log_message("Testing ECIES performance");

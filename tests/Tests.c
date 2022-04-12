@@ -67,6 +67,6 @@ void test_ecdsa(Curve curve) {
     bool valid = ecdsa_verify(privkey, test_message, test_message_len, signature);
     assert_true(valid, "Successfully validated digital signature");
 
-    KeyPair_free(privkey); // pubkey doesn't have to be freed
+    KeyPair_free(privkey);
     free(signature);
 }
