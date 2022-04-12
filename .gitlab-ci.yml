@@ -1,13 +1,44 @@
 stages:
-  - test
+  - build
+  - deploy
 
-
-test-job:
-  stage: test
+build:
+  stage: build
   tags: [ios]
+  allow_failure: false
+  only:
+    - branches
   script:
-    - export TEST='success'
-    - echo $TEST
-  after_script:
-    - echo $TEST
+    - make
+    - make run
+
+deploy_patch:
+  stage: deploy
+  tags: [ios]
+  allow_failure: false
+  only:
+    - devel
+  script:
+    - make all
+    - deploy.sh patch
+
+deploy_minor:
+  stage: deploy
+  tags: [ios]
+  allow_failure: false
+  only:
+    - staging
+  script:
+    - make all
+    - deploy.sh minor
+
+deploy_major:
+  stage: deploy
+  tags: [ios]
+  allow_failure: false
+  only:
+    - main
+  script:
+    - make all
+    - deploy.sh major
 
