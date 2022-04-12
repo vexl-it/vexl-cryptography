@@ -1,22 +1,13 @@
 stages:
-  - build
   - test
 
-build:
-  stage: build
-  tags: [ios]
-  allow_failure: false
-  only:
-    - branches
-  script:
-    - make
-    - make run
 
 test-job:
   stage: test
   tags: [ios]
   script:
     - export TEST='success'
+    - echo $TEST
   after_script:
     - echo $TEST
 
