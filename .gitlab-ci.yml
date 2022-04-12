@@ -10,7 +10,7 @@ build:
     - merge_requests
   script:
     - make
-    - make run
+    - make run-test
 
 deploy_patch:
   stage: deploy
