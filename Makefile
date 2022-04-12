@@ -92,7 +92,7 @@ darwin-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwi
 
 $(TMPFOLDER)/darwin-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
-	$(X86) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -c -o $@ $< -target macos-x86_64
+	$(X86) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -c -o $@ $< -target macos-x86_64
 
 darwin-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwin-arm64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
@@ -104,7 +104,7 @@ darwin-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwin
 
 $(TMPFOLDER)/darwin-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
-	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX12.3.sdk -c -o $@ $< -target macos-arm64
+	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -c -o $@ $< -target macos-arm64
 
 
 ios-simulator-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/ios-simulator-x86_64/$(CFILE)))
@@ -117,7 +117,7 @@ ios-simulator-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER
 
 $(TMPFOLDER)/ios-simulator-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
-	$(X86) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator15.4.sdk -c -o $@ $< -target x86_64-apple-ios-simulator
+	$(X86) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk -c -o $@ $< -target x86_64-apple-ios-simulator
 
 ios-simulator-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/ios-simulator-arm64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
@@ -129,7 +129,7 @@ ios-simulator-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)
 
 $(TMPFOLDER)/ios-simulator-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
-	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator15.4.sdk -c -o $@ $< -target arm64-apple-ios-simulator
+	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk -c -o $@ $< -target arm64-apple-ios-simulator
 
 ios-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/ios-arm64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
@@ -141,7 +141,7 @@ ios-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/ios-arm64
 
 $(TMPFOLDER)/ios-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
-	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS15.4.sdk -c -o $@ $< -target arm64-apple-ios
+	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk -c -o $@ $< -target arm64-apple-ios
 
 test: $(CURRENTARCH) test-$(CURRENTARCH)
 
