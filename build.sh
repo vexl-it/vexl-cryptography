@@ -7,20 +7,25 @@ PRODUCTFOLDER="$LIBFOLDER/lib"
 OUTPUT_DARWIN_ARM64="$PRODUCTFOLDER/darwin-arm64"
 OUTPUT_DARWIN_X86_64="$PRODUCTFOLDER/darwin-x86_64"
 OUTPUT_DARWIN_SHARED="$PRODUCTFOLDER/darwin"
+OUTPUT_IOS_SIMULATOR_X86_64="$PRODUCTFOLDER/ios-simulator-x86_64"
+OUTPUT_IOS_SIMULATOR_ARM64="$PRODUCTFOLDER/ios-simulator-arm64"
+OUTPUT_IOS_ARM64="$PRODUCTFOLDER/ios-arm64"
 
 OUTPUT_LINUX_X86_64="$PRODUCTFOLDER/linux-x86_64"
 
-TARGETS=(DARWIN_ARM64 DARWIN_X86_64, LINUX_X86_64)
+TARGETS=(DARWIN_ARM64 DARWIN_X86_64, IOS_SIMULATOR_X86_64, IOS_SIMULATOR_ARM64, IOS_ARM64)
 TARGETSCOUNT=${#TARGETS[@]}
 
 
 printHelp() {
     echo "usage: ./build_openssl.sh [options]"
     echo "  options:"
-    echo "    -d, --darwin            Creates universal openssl static library for macOS and iOS"
-    echo "    -da, --darwin-arm64     Creates arm openssl static library for macOS with apple silicon and iOS"
-    echo "    -ds, --darwin-x86_64    Creates x86_64 openssl static library for macOS with iOS simulator"
-    echo "    -lx, --linux-x86_64     Creates x86_64 openssl static library for macOS with iOS simulator"
+    echo "    -d,   --darwin                 Creates universal openssl static library for macOS and iOS"
+    echo "    -da,  --darwin-arm64           Creates arm openssl static library for macOS with apple silicon and iOS"
+    echo "    -ds,  --darwin-x86_64          Creates x86_64 openssl static library for macOS with iOS simulator"
+    echo "    -isa, --ios-simulator-arm64    Creates arm openssl static library for macOS with apple silicon and iOS"
+    echo "    -isx, --ios-simulator-x86_64   Creates x86_64 openssl static library for macOS with iOS simulator"
+    echo "    -ia,  --ios-arm64              Creates arm openssl static library for macOS with apple silicon and iOS"
 }
 
 build() {
@@ -34,8 +39,14 @@ build() {
         DARWIN_X86_64)
             outputPath=$OUTPUT_DARWIN_X86_64
             ;;
-        LINUX_X86_64)
-            outputPath=$OUTPUT_LINUX_X86_64
+        IOS_SIMULATOR_X86_64)
+            outputPath=$OUTPUT_IOS_SIMULATOR_X86_64
+            ;;
+        IOS_SIMULATOR_ARM64)
+            outputPath=$OUTPUT_IOS_SIMULATOR_ARM64
+            ;;
+        IOS_ARM64)
+            outputPath=$OUTPUT_IOS_ARM64
             ;;
         *)
             echo "[OPENSSL] Did not match any target ($targetName)"
@@ -65,11 +76,23 @@ build() {
                 --prefix="$outputPath" \
                 no-shared
             ;;
-        LINUX_X86_64)
-            echo "[OPENSSL] Building for linux@x86_64"
-            ./config linux-x86_64 \
-                --prefix="$outputPath" \
-                no-shared
+        IOS_SIMULATOR_X86_64)
+            export CROSS_TOP="xcode-select --print-path/Platforms/iPhoneSimulator.platform/Developer"
+            export CROSS_SDK="iPhoneSimulator.sdk"
+            ./Configure iossimulator-xcrun "-arch x86_64" no-asm no-shared no-hw no-async --prefix="$outputPath"
+            ;;
+        IOS_SIMULATOR_ARM64)
+            export CROSS_TOP="xcode-select --print-path/Platforms/iPhoneSimulator.platform/Developer"
+            export CROSS_SDK="iPhoneSimulator.sdk"
+            ./Configure iossimulator-xcrun "-arch arm64" no-asm no-shared no-hw no-async --prefix="$outputPath"
+            ;;
+        IOS_ARM64)
+            export CC=clang;
+            export CROSS_TOP=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer
+            export CROSS_SDK=iPhoneOS.sdk
+            export PATH="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin:$PATH"
+            echo "[OPENSSL] Building for ios@arm64"
+            ./Configure ios64-cross no-shared no-dso no-hw no-engine --prefix="$outputPath"
             ;;
         *)
             echo "[OPENSSL] Did not match any target ($targetName)"
@@ -125,7 +148,19 @@ else
                 built_darwin_x86_64=true
                 shift
                 ;;
-            -lx|--linux-x86_64)
+            -isa|--ios-simulator-arm64)
+                build IOS_SIMULATOR_ARM64  $OUTPUT_IOS_SIMULATOR_ARM64
+                shift
+                ;;
+            -isx|--ios-simulator-x86_64)
+                build IOS_SIMULATOR_X86_64  $OUTPUT_IOS_SIMULATOR_X86_64
+                shift
+                ;;
+            -ia|--ios-arm64)
+                build IOS_ARM64  $OUTPUT_IOS_ARM64
+                shift
+                ;;
+            -lx|--darwin-arm64 )
                 build LINUX_X86_64  $OUTPUT_LINUX_X86_64
                 shift
                 ;;
@@ -142,14 +177,6 @@ else
 fi
 
 wait
-
-if [ "$built_darwin_arm64" = true -a "$built_darwin_x86_64" = true -a ! -d $OUTPUT_DARWIN_SHARED ] ; then
-    echo "[OPENSSL] Building shared darwing framework"
-    mkdir -p $OUTPUT_DARWIN_SHARED/lib/
-    lipo $OUTPUT_DARWIN_ARM64/lib/libssl.a $OUTPUT_DARWIN_X86_64/lib/libssl.a -create -output $OUTPUT_DARWIN_SHARED/lib/libssl.a
-    lipo $OUTPUT_DARWIN_ARM64/lib/libcrypto.a $OUTPUT_DARWIN_X86_64/lib/libcrypto.a -create -output $OUTPUT_DARWIN_SHARED/lib/libcrypto.a
-    cp -R $OUTPUT_DARWIN_ARM64/include $OUTPUT_DARWIN_SHARED/include
-fi
 
 echo "[OPENSSL] openssl cleanup"
 rm -Rf $TMPFOLDER

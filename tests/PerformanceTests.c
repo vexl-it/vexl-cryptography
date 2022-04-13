@@ -2,7 +2,7 @@
 // Created by Adam Salih on 05.04.2022.
 //
 
-#include "PerfomranceTests.h"
+#include "PerformanceTests.h"
 
 void test_asymetric_performance(Curve curve, int count) {
     clock_t key_gen_start, encryption_start, decryption_start, ecdsa_sign_start, ecdsa_verify_start, end;
@@ -78,8 +78,7 @@ void test_symetric_performance(int count) {
     }
 }
 
-void test_performance() {
-    int count = 1;
+void test_performance(int count) {
     log_message("Running performance with %d iterations", count);
 
     log_message("Testing ECIES performance");

@@ -17,6 +17,6 @@
 #include "TestConstants.h"
 #include "Tools.h"
 
-void test_performance();
+void test_performance(int count);
 
 #endif

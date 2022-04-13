@@ -6,19 +6,40 @@
 //
 
 #include <stdio.h>
+#include <unistd.h>
 
 #include "Tests.h"
 
-int main(void) {
+int parse_args(int argc, char **argv) {
+    int c;
+    int count = 0;
+    opterr = 0;
+
+    while ((c = getopt (argc, argv, "p:")) != -1) {
+        switch (c) {
+            case 'p':
+                count = atoi(optarg);
+                break;
+        }
+    }
+    return count;
+}
+
+int main(int argc, char **argv) {
     printf("[VEXL TESTS]\n");
     ecies_init();
     Curve curve = secp224r1;
 
-    test_performance();
     test_aes();
     test_hmac();
     test_ecies(curve);
     test_ecdsa(curve);
+
+
+    int count;
+    if ((count = parse_args(argc, argv)) > 0) {
+        test_performance(count);
+    }
 
     return 0;
 }
