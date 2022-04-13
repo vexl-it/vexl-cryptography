@@ -1,16 +1,16 @@
 stages:
-  - build
+#  - build
   - deploy
 
-build:
-  stage: build
-  tags: [ios]
-  allow_failure: false
-  only:
-    - merge_requests
-  script:
-    - make
-    - make run-test
+#build:
+#  stage: build
+#  tags: [ios]
+#  allow_failure: false
+#  only:
+#    - merge_requests
+#  script:
+#    - make
+#    - make run-test
 
 deploy_patch:
   stage: deploy
@@ -19,7 +19,7 @@ deploy_patch:
   only:
     - devel
   script:
-    - make all
+#    - make all
     - deploy.sh patch
 
 deploy_minor:

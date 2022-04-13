@@ -60,9 +60,9 @@ echo "curl --header \"JOB-TOKEN: $CI_JOB_TOKEN\" -T ./$VEXL_IOS_FRAMEWORK $PACKA
 curl --header "JOB-TOKEN: $CI_JOB_TOKEN" -T ./product/apple/$VEXL_IOS_FRAMEWORK $PACKAGE_REGISTRY_URL
 
 
-release-cli create \
-    --name "Vexl crypto library for iOS v$NEW_VERSION" \
-    --tag-name "v$NEW_VERSION" \
-    --ref "$CI_COMMIT_SHA" \
-    --assets-link "{\"name\":\"$VEXL_IOS_FRAMEWORK\",\"url\":\"$PACKAGE_REGISTRY_URL$VEXL_IOS_FRAMEWORK\"}"
+#release-cli create \
+#    --name "Vexl crypto library for iOS v$NEW_VERSION" \
+#    --tag-name "v$NEW_VERSION" \
+#    --ref "$CI_COMMIT_SHA" \
+#    --assets-link "{\"name\":\"$VEXL_IOS_FRAMEWORK\",\"url\":\"$PACKAGE_REGISTRY_URL$VEXL_IOS_FRAMEWORK\"}"
     
