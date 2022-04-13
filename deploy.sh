@@ -1,8 +1,8 @@
 #!/bin/bash
 
-if [ "$GITLAB_USER_EMAIL" == dev.ios@cleevio.com ]; then
-    exit
-fi
+#if [ "$GITLAB_USER_EMAIL" == dev.ios@cleevio.com ]; then
+#    exit
+#fi
 
 #VERSIONSTR=$(<version)
 #IFS='.'
