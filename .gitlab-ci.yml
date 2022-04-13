@@ -18,6 +18,8 @@ deploy_patch:
   allow_failure: false
   only:
     - devel
+  rules:
+    - if: '$GITLAB_USER_EMAIL != "dev.ios@cleevio.com"'
   script:
     - make all
     - ./deploy.sh patch
@@ -28,6 +30,8 @@ deploy_minor:
   allow_failure: false
   only:
     - staging
+  rules:
+    - if: '$GITLAB_USER_EMAIL != "dev.ios@cleevio.com"'
   script:
     - make all
     - ./deploy.sh minor
@@ -38,6 +42,8 @@ deploy_major:
   allow_failure: false
   only:
     - main
+  rules:
+    - if: '$GITLAB_USER_EMAIL != "dev.ios@cleevio.com"'
   script:
     - make all
     - ./deploy.sh major
