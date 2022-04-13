@@ -16,10 +16,10 @@ deploy_patch:
   stage: deploy
   tags: [ios]
   allow_failure: false
-  only:
-    - devel
   rules:
+    - if: '$CI_COMMIT_REF_NAME == "devel"'
     - if: '$GITLAB_USER_EMAIL != "dev.ios@cleevio.com"'
+      when: never
   script:
     - make all
     - ./deploy.sh patch
@@ -28,10 +28,10 @@ deploy_minor:
   stage: deploy
   tags: [ios]
   allow_failure: false
-  only:
-    - staging
   rules:
+    - if: '$CI_COMMIT_REF_NAME == "staging"'
     - if: '$GITLAB_USER_EMAIL != "dev.ios@cleevio.com"'
+      when: never
   script:
     - make all
     - ./deploy.sh minor
@@ -40,10 +40,10 @@ deploy_major:
   stage: deploy
   tags: [ios]
   allow_failure: false
-  only:
-    - main
   rules:
+    - if: '$CI_COMMIT_REF_NAME == "main"'
     - if: '$GITLAB_USER_EMAIL != "dev.ios@cleevio.com"'
+      when: never
   script:
     - make all
     - ./deploy.sh major
