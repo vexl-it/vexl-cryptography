@@ -17,10 +17,6 @@ CC=gcc
 AR=ar
 LIBTOOL=libtool
 
-MACOS_SDK=$(shell xcrun --sdk macosx --show-sdk-path)
-IOS_SIM_SDK=$(shell xcrun --sdk iphonesimulator --show-sdk-path)
-IOS_SDK=$(shell xcrun --sdk iphoneos --show-sdk-path)
-
 TMPFOLDER=tmp
 PRODUCTFOLDER=product
 SRCFOLDER=src
@@ -29,20 +25,33 @@ OPENSSLFOLDER=openssl
 SSLINCLUDE=$(OPENSSLFOLDER)/include
 SSLLIB=$(OPENSSLFOLDER)/lib
 TESTBIN=$(PRODUCTFOLDER)/$(TESTFOLDER)/test
-APPLE_ARCHITECTURES=darwin-x86_64 darwin-arm64 ios-simulator-x86_64 ios-simulator-arm64 ios-arm64
-ARCHITECTURES=$(APPLE_ARCHITECTURES)
 
 # Compiler flags
 CFLAGS=-MP -MD -g -w -O3
 LCFLAGS= $(CFLAGS) -DBUILD_FOR_LIBRARY
 
 # ARCH variables
+APPLE_ARCHITECTURES=darwin-x86_64 darwin-arm64 ios-simulator-x86_64 ios-simulator-arm64 ios-arm64
+ANDROID_ARCHITECTURES=android-arm64 android-armv4 android-x86 android-x86_64
+ARCHITECTURES=$(APPLE_ARCHITECTURES) $(APPLE_ARCHITECTURES)
+
 ARCHOFOLDERS=$(foreach ARCH,$(ARCHITECTURES),$(TMPFOLDER)/$(ARCH))
 CURRENTARCH=$(shell uname | tr A-Z a-z)-$(shell uname -m | tr A-Z a-z)
 
+MACOS_SDK=$(shell xcrun --sdk macosx --show-sdk-path)
+IOS_SIM_SDK=$(shell xcrun --sdk iphonesimulator --show-sdk-path)
+IOS_SDK=$(shell xcrun --sdk iphoneos --show-sdk-path)
+
+ANDROID_NDK_ROOT=~/Library/Android/sdk/ndk/24.0.8215888
+ANDROID_ARM64_CROSS_CC=$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android32-clang
+ANDROID_ARMv7_CROSS_CC=$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64/bin/armv7a-linux-androideabi32-clang
+ANDROID_X86_64_CROSS_CC=$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64/bin/x86_64-linux-android32-clang
+ANDROID_X86_CROSS_CC=$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64/bin/i686-linux-android32-clang
+ANDROID_AR=$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ar
 # OpenSSL builds
 OPENSSL_APPLE_TARGETS=$(foreach ARCH, $(APPLE_ARCHITECTURES), build-openssl-$(ARCH))
-OPENSSLTARGETS=$(foreach ARCH, $(ARCHITECTURES), build-openssl-$(ARCH))
+OPENSSL_ANDROID_TARGETS=$(foreach ARCH, $(ANDROID_ARCHITECTURES), build-openssl-$(ARCH))
+OPENSSLTARGETS=$(OPENSSL_APPLE_TARGETS) $(OPENSSL_ANDROID_TARGETS)
 
 # Library files
 SRCFOLDER=src
@@ -68,7 +77,7 @@ DEPFILES=$(patsubst %.c,%.d,$(ALLCFILES))
 
 build-current: build-openssl-$(CURRENTARCH) $(CURRENTARCH) test
 
-all: apple test
+all: apple android test
 
 $(OPENSSLTARGETS):
 	./build.sh --$(@:build-openssl-%=%)
@@ -85,6 +94,10 @@ apple: $(OPENSSL_APPLE_TARGETS) $(APPLE_ARCHITECTURES)
 	))
 	xcodebuild -create-xcframework $(LIBS) -output $(PRODUCTFOLDER)/apple/vexl.xcframework
 	zip -q -r $(PRODUCTFOLDER)/apple/vexl_crypto_ios_xcframework.zip $(PRODUCTFOLDER)/apple/vexl.xcframework
+
+android: $(OPENSSL_ANDROID_TARGETS) $(ANDROID_ARCHITECTURES)
+	@mkdir -p $(PRODUCTFOLDER)/android
+	cd $(PRODUCTFOLDER) && zip -r android/vexl_crypto_android_frameworks.zip android-arm64 android-armv4 android-x86 android-x86_64
 
 darwin-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwin-x86_64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
@@ -146,6 +159,55 @@ ios-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/ios-arm64
 $(TMPFOLDER)/ios-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot $(IOS_SDK) -c -o $@ $< -target arm64-apple-ios
+
+android-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-arm64/$(CFILE)))
+	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
+	$(X86) $(ANDROID_AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
+	@cp $(SSLLIB)/$@/lib/libcrypto.a $(PRODUCTFOLDER)/$@/lib/libcrypto.a
+	@cp $(SSLLIB)/$@/lib/libssl.a $(PRODUCTFOLDER)/$@/lib/libssl.a
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
+
+$(TMPFOLDER)/android-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+	@mkdir -p $(dir $@)
+	$(X86) $(ANDROID_ARM64_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
+
+android-armv4: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-armv4/$(CFILE)))
+	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
+	$(X86) $(ANDROID_AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
+	@cp $(SSLLIB)/$@/lib/libcrypto.a $(PRODUCTFOLDER)/$@/lib/libcrypto.a
+	@cp $(SSLLIB)/$@/lib/libssl.a $(PRODUCTFOLDER)/$@/lib/libssl.a
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
+
+$(TMPFOLDER)/android-armv4/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+	@mkdir -p $(dir $@)
+	$(X86) $(ANDROID_ARMv7_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
+
+android-x86: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-x86/$(CFILE)))
+	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
+	$(X86) $(ANDROID_AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
+	@cp $(SSLLIB)/$@/lib/libcrypto.a $(PRODUCTFOLDER)/$@/lib/libcrypto.a
+	@cp $(SSLLIB)/$@/lib/libssl.a $(PRODUCTFOLDER)/$@/lib/libssl.a
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
+
+$(TMPFOLDER)/android-x86/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+	@mkdir -p $(dir $@)
+	$(X86) $(ANDROID_X86_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
+
+
+android-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-x86_64/$(CFILE)))
+	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
+	$(X86) $(ANDROID_AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
+	@cp $(SSLLIB)/$@/lib/libcrypto.a $(PRODUCTFOLDER)/$@/lib/libcrypto.a
+	@cp $(SSLLIB)/$@/lib/libssl.a $(PRODUCTFOLDER)/$@/lib/libssl.a
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
+
+$(TMPFOLDER)/android-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+	@mkdir -p $(dir $@)
+	$(X86) $(ANDROID_X86_64_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
 test: $(CURRENTARCH) test-$(CURRENTARCH)
 
