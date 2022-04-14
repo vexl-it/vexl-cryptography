@@ -28,10 +28,10 @@ printHelp() {
     echo "    -isa, --ios-simulator-arm64    Creates arm openssl static library for iOS simulator running on Apple silicon SoC"
     echo "    -isx, --ios-simulator-x86_64   Creates x86_64 openssl static library for iOS simulator running on Intel CPU"
     echo "    -ia,  --ios-arm64              Creates arm openssl static library for iOS"
-    echo "    -aav4,  --android-armv4          Creates arm openssl static library for devices running linux with 32-bit ARMv4 SoC"
+    echo "    -aav4,  --android-armv4        Creates arm openssl static library for devices running linux with 32-bit ARMv4 SoC"
     echo "    -aa64,  --android-arm64        Creates arm openssl static library for devices running linux with 64-bit ARMv8 or ARM64 SoC"
-    echo "    -ax64,  --android-x86_64           Creates arm openssl static library for devices running on x86_64 CPU"
-    echo "    -ax,  --android-x86              Creates arm openssl static library for devices running on x86 CPU"
+    echo "    -ax64,  --android-x86_64       Creates arm openssl static library for devices running on x86_64 CPU"
+    echo "    -ax,  --android-x86            Creates arm openssl static library for devices running on x86 CPU"
 }
 
 build() {
