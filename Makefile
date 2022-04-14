@@ -223,7 +223,7 @@ run:
 	@$(TESTBIN)
 
 run-test:
-	@$(TESTBIN) -p 1000
+	@$(TESTBIN) -p 100
 
 clean:
 	rm -rf $(DEPFILES) $(TMPFOLDER) $(PRODUCTFOLDER)

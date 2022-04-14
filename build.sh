@@ -18,6 +18,7 @@ OUTPUT_ANDROID_X86_64="$PRODUCTFOLDER/android-x86_64"
 
 TARGETS=(DARWIN_ARM64 DARWIN_X86_64, IOS_SIMULATOR_X86_64, IOS_SIMULATOR_ARM64, IOS_ARM64, ANDROID_ARM64, ANDROID_ARMV4, ANDROID_X86, ANDROID_X86_64)
 TARGETSCOUNT=${#TARGETS[@]}
+CURRENTUSER="$(whoami)"
 
 
 printHelp() {
@@ -116,24 +117,24 @@ build() {
             ;;
         ANDROID_ARM64)
             echo "[OPENSSL] Building for android@arm64"
-            export ANDROID_NDK_ROOT='~/Library/Android/sdk/ndk/24.0.8215888'
+            export ANDROID_NDK_ROOT="/Users/$CURRENTUSER/Library/Android/sdk/ndk/24.0.8215888"
             export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
             ./Configure android-arm64 --prefix="$outputPath" no-shared
             ;;
         ANDROID_ARMV4)
-            export ANDROID_NDK_ROOT='~/Library/Android/sdk/ndk/24.0.8215888'
+            export ANDROID_NDK_ROOT="/Users/$CURRENTUSER/Library/Android/sdk/ndk/24.0.8215888"
             export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
             echo "[OPENSSL] Building for android@armv4"
             ./Configure android-arm --prefix="$outputPath" no-shared
             ;;
         ANDROID_X86_64)
-            export ANDROID_NDK_ROOT='~/Library/Android/sdk/ndk/24.0.8215888'
+            export ANDROID_NDK_ROOT="/Users/$CURRENTUSER/Library/Android/sdk/ndk/24.0.8215888"
             export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
             echo "[OPENSSL] Building for android@x86_64"
             ./Configure android-x86_64 --prefix="$outputPath" no-shared
             ;;
         ANDROID_X86)
-            export ANDROID_NDK_ROOT='~/Library/Android/sdk/ndk/24.0.8215888'
+            export ANDROID_NDK_ROOT="/Users/$CURRENTUSER/Library/Android/sdk/ndk/24.0.8215888"
             export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
             echo "[OPENSSL] Building for android@x86"
             ./Configure android-x86 --prefix="$outputPath" no-shared
