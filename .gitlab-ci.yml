@@ -18,7 +18,7 @@ deploy_patch:
   allow_failure: false
   rules:
     - if: '$CI_COMMIT_REF_NAME == "devel"'
-    - if: '$GITLAB_USER_EMAIL != "dev.ios@cleevio.com"'
+    - if: '$GITLAB_USER_EMAIL == "dev.ios@cleevio.com"'
       when: never
   script:
     - make all
@@ -30,7 +30,7 @@ deploy_minor:
   allow_failure: false
   rules:
     - if: '$CI_COMMIT_REF_NAME == "staging"'
-    - if: '$GITLAB_USER_EMAIL != "dev.ios@cleevio.com"'
+    - if: '$GITLAB_USER_EMAIL == "dev.ios@cleevio.com"'
       when: never
   script:
     - make all
@@ -42,7 +42,7 @@ deploy_major:
   allow_failure: false
   rules:
     - if: '$CI_COMMIT_REF_NAME == "main"'
-    - if: '$GITLAB_USER_EMAIL != "dev.ios@cleevio.com"'
+    - if: '$GITLAB_USER_EMAIL == "dev.ios@cleevio.com"'
       when: never
   script:
     - make all
