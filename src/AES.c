@@ -84,7 +84,7 @@ void _aes_decrypt(const char *password, const int password_len, const char *base
     unsigned char ke_km[ke_len + km_len];
 
 
-    unsigned char *dc_out = malloc(cipher_len+km_len);
+    unsigned char dc_out[cipher_len+km_len];
     memset(dc_out, 0, cipher_len+km_len);
     size_t dc_len = 0;
     int outl = 0;
