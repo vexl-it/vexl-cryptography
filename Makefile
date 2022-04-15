@@ -27,7 +27,7 @@ SSLLIB=$(OPENSSLFOLDER)/lib
 TESTBIN=$(PRODUCTFOLDER)/$(TESTFOLDER)/test
 
 # Compiler flags
-CFLAGS=-MP -MD -g -w -O3
+CFLAGS=-MP -MD -g -w
 LCFLAGS= $(CFLAGS) -DBUILD_FOR_LIBRARY
 
 # ARCH variables
@@ -223,7 +223,7 @@ run:
 	@$(TESTBIN)
 
 run-test:
-	@$(TESTBIN) -p 100
+	@$(TESTBIN) -p 1000
 
 clean:
 	rm -rf $(DEPFILES) $(TMPFOLDER) $(PRODUCTFOLDER)
