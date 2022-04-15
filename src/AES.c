@@ -83,8 +83,9 @@ void _aes_decrypt(const char *password, const int password_len, const char *base
     size_t km_len = EVP_MD_block_size(md);
     unsigned char ke_km[ke_len + km_len];
 
-    unsigned char dc_out[cipher_len];
-    memset(dc_out, 0, cipher_len);
+
+    unsigned char *dc_out = malloc(cipher_len+km_len);
+    memset(dc_out, 0, cipher_len+km_len);
     size_t dc_len = 0;
     int outl = 0;
 
@@ -102,6 +103,7 @@ void _aes_decrypt(const char *password, const int password_len, const char *base
     memcpy(*message, dc_out, dc_len);
     *message_len = dc_len;
 
+    free(dc_out);
     EVP_CIPHER_CTX_free(ectx);
     EVP_CIPHER_free(evp_cipher);
     EVP_MD_free(md);
