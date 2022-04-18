@@ -75,6 +75,9 @@ build() {
         LINUX_ARM64)
             outputPath=$OUTPUT_LINUX_ARM64
             ;;
+        LINUX_X86_64)
+            outputPath=$OUTPUT_LINUX_X86_64
+            ;;
         *)
             echo "[OPENSSL] Did not match any target ($targetName)"
             return
@@ -150,6 +153,11 @@ build() {
         LINUX_ARM64)
             echo "[OPENSSL] Building for linux@arm64"
             ./config linux-aarch64 --prefix="$outputPath" no-shared
+            ;;
+        LINUX_X86_64)
+            echo "[OPENSSL] Building for linux@x86_64"
+            ./config linux-x86_64 --prefix="$outputPath" no-shared
+            ;;
         *)
             echo "[OPENSSL] Did not match any target ($targetName)"
             return

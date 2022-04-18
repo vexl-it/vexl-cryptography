@@ -234,6 +234,24 @@ $(TMPFOLDER)/linux-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
+docker-linux-x86_64:
+	docker build --tag linux-x86_64 - < ./docker/Dockerfile-linux-x86_64
+	docker run -v $(shell pwd):/root/vexl -v $(shell pwd)/../openssl:/root/openssl --rm --name linux-x86_64 --platform=linux/amd64 linux-x86_64
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$(@:docker-%=%)/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$(@:docker-%=%)/include/vc
+
+linux-x86_64: build-openssl-linux-x86_64 build-linux-x86_64
+
+build-linux-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/linux-x86_64/$(CFILE)))
+	@mkdir -p $(PRODUCTFOLDER)/$(@:build-%=%)/lib $(PRODUCTFOLDER)/$(@:build-%=%)/include/vc
+	$(AR) rcs -v $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libvc.a $^
+	@cp $(SSLLIB)/$(@:build-%=%)/lib64/libcrypto.a $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libcrypto.a
+	@cp $(SSLLIB)/$(@:build-%=%)/lib64/libssl.a $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libssl.a
+
+$(TMPFOLDER)/linux-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
+
 test: $(CURRENTARCH) test-$(CURRENTARCH)
 
 test-$(CURRENTARCH): $(TESTOFILES)
