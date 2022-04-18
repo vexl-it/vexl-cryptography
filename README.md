@@ -48,7 +48,7 @@ Although It can be useful to compile every target at once,  To compile VC for sp
 ```shell
 make apple
 ```
-The archive for all resulting architectures can be found in `./product/linux/vexl_crypto_ios_xcframework.zip`
+The archive for all resulting architectures can be found in `./product/apple/vexl_crypto_ios_xcframework.zip`
 
 *Please note the the library for apple targets is only one singular `.xcframework` library. This library uses apples latest methods for bundling multiple architectures.* 
 
@@ -56,7 +56,7 @@ The archive for all resulting architectures can be found in `./product/linux/vex
 ```shell
 make android
 ```
-The archive for all resulting architectures can be found in `./product/linux/vexl_crypto_android_frameworks.zip`
+The archive for all resulting architectures can be found in `./product/android/vexl_crypto_android_frameworks.zip`
 
 ### Building for Linux
 ```shell
