@@ -19,6 +19,7 @@ LIBTOOL=libtool
 
 TMPFOLDER=tmp
 PRODUCTFOLDER=product
+ANDROIDFOLDER=$(PRODUCTFOLDER)/android/vexl-crypto.framework
 SRCFOLDER=src
 TESTFOLDER=tests
 OPENSSLFOLDER=../openssl
@@ -95,12 +96,14 @@ apple: $(OPENSSL_APPLE_TARGETS) $(APPLE_ARCHITECTURES)
 	$(eval LIBS := $(foreach ARCH, $(LIBFARCH), \
 		-library $(PRODUCTFOLDER)/$(ARCH)/lib/libvc.a -headers $(PRODUCTFOLDER)/$(ARCH)/include \
 	))
-	xcodebuild -create-xcframework $(LIBS) -output $(PRODUCTFOLDER)/apple/vexl.xcframework
-	zip -q -r $(PRODUCTFOLDER)/apple/vexl_crypto_ios_xcframework.zip $(PRODUCTFOLDER)/apple/vexl.xcframework
+	xcodebuild -create-xcframework $(LIBS) -output $(PRODUCTFOLDER)/apple/vexl-crypto.xcframework
+	zip -q -r $(PRODUCTFOLDER)/apple/vexl_crypto_ios_xcframework.zip $(PRODUCTFOLDER)/apple/vexl-crypto.xcframework
 
 android: $(OPENSSL_ANDROID_TARGETS) $(ANDROID_ARCHITECTURES)
-	@mkdir -p $(PRODUCTFOLDER)/android
-	cd $(PRODUCTFOLDER) && zip -r android/vexl_crypto_android_frameworks.zip android-armv8 android-armv4 android-x86 android-x86_64
+	@mkdir -p $(ANDROIDFOLDER)/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(ANDROIDFOLDER)/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(ANDROIDFOLDER)/include/vc
+	cd $(ANDROIDFOLDER)/.. && zip -r vexl_crypto_android_frameworks.zip vexl-crypto.framework
 
 linux: $(DOCKER_LINUX_ARCHITECTURES)
 	@mkdir -p $(PRODUCTFOLDER)/linux
@@ -129,7 +132,6 @@ darwin-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwin
 $(TMPFOLDER)/darwin-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot $(MACOS_SDK) -c -o $@ $< -target macos-arm64
-
 
 ios-simulator-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/ios-simulator-x86_64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
@@ -168,49 +170,40 @@ $(TMPFOLDER)/ios-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot $(IOS_SDK) -c -o $@ $< -target arm64-apple-ios
 
 android-armv8: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-armv8/$(CFILE)))
-	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
-	$(X86) $(ANDROID_AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
-	@cp $(SSLLIB)/$@/lib/libcrypto.a $(PRODUCTFOLDER)/$@/lib/libcrypto.a
-	@cp $(SSLLIB)/$@/lib/libssl.a $(PRODUCTFOLDER)/$@/lib/libssl.a
-	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
-	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
+	@mkdir -p $(ANDROIDFOLDER)/arm64-v8a
+	$(X86) $(ANDROID_AR) rcs -v $(ANDROIDFOLDER)/arm64-v8a/libvc.a $^
+	@cp $(SSLLIB)/$@/lib/libcrypto.a $(ANDROIDFOLDER)/arm64-v8a/libcrypto.a
+	@cp $(SSLLIB)/$@/lib/libssl.a $(ANDROIDFOLDER)/arm64-v8a/libssl.a
 
 $(TMPFOLDER)/android-armv8/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(X86) $(ANDROID_ARM64_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
 android-armv4: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-armv4/$(CFILE)))
-	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
-	$(X86) $(ANDROID_AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
-	@cp $(SSLLIB)/$@/lib/libcrypto.a $(PRODUCTFOLDER)/$@/lib/libcrypto.a
-	@cp $(SSLLIB)/$@/lib/libssl.a $(PRODUCTFOLDER)/$@/lib/libssl.a
-	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
-	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
+	@mkdir -p $(ANDROIDFOLDER)/armeabi-v7a
+	$(X86) $(ANDROID_AR) rcs -v $(ANDROIDFOLDER)/armeabi-v7a/libvc.a $^
+	@cp $(SSLLIB)/$@/lib/libcrypto.a $(ANDROIDFOLDER)/armeabi-v7a/libcrypto.a
+	@cp $(SSLLIB)/$@/lib/libssl.a $(ANDROIDFOLDER)/armeabi-v7a/libssl.a
 
 $(TMPFOLDER)/android-armv4/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(X86) $(ANDROID_ARMv7_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
 android-x86: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-x86/$(CFILE)))
-	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
-	$(X86) $(ANDROID_AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
-	@cp $(SSLLIB)/$@/lib/libcrypto.a $(PRODUCTFOLDER)/$@/lib/libcrypto.a
-	@cp $(SSLLIB)/$@/lib/libssl.a $(PRODUCTFOLDER)/$@/lib/libssl.a
-	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
-	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
+	@mkdir -p $(ANDROIDFOLDER)/x86
+	$(X86) $(ANDROID_AR) rcs -v $(ANDROIDFOLDER)/x86/libvc.a $^
+	@cp $(SSLLIB)/$@/lib/libcrypto.a $(ANDROIDFOLDER)/x86/libcrypto.a
+	@cp $(SSLLIB)/$@/lib/libssl.a $(ANDROIDFOLDER)/x86/libssl.a
 
 $(TMPFOLDER)/android-x86/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(X86) $(ANDROID_X86_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
-
 android-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-x86_64/$(CFILE)))
-	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
-	$(X86) $(ANDROID_AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
-	@cp $(SSLLIB)/$@/lib/libcrypto.a $(PRODUCTFOLDER)/$@/lib/libcrypto.a
-	@cp $(SSLLIB)/$@/lib/libssl.a $(PRODUCTFOLDER)/$@/lib/libssl.a
-	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
-	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
+	@mkdir -p $(ANDROIDFOLDER)/x86_64
+	$(X86) $(ANDROID_AR) rcs -v $(ANDROIDFOLDER)/x86_64/libvc.a $^
+	@cp $(SSLLIB)/$@/lib/libcrypto.a $(ANDROIDFOLDER)/x86_64/libcrypto.a
+	@cp $(SSLLIB)/$@/lib/libssl.a $(ANDROIDFOLDER)/x86_64/libssl.a
 
 $(TMPFOLDER)/android-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
