@@ -184,9 +184,8 @@ else
 fi
 
 if [ "$#" = 0 ]; then
-    for ((i=0; i < ${#TARGETS[@]}; i++)); do
-        build ${TARGETS[i]} &
-    done
+    printHelp
+    exit
 else 
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -233,6 +232,10 @@ else
             -lx|--linux-x86_64 )
                 build LINUX_X86_64  $OUTPUT_LINUX_X86_64
                 shift
+                ;;
+            -h|--help )
+                printHelp
+                exit 0
                 ;;
             -*|--*)
                 printHelp
