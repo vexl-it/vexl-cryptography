@@ -41,12 +41,14 @@ export CI_PUSH_REPO=`echo $CI_REPOSITORY_URL | perl -pe 's#.*@(.+?(\:\d+)?)/#git
 git checkout -b ci_processing
 git config --global user.email "dev.ios@cleevio.com"
 git config --global user.name "Mac mini CI"
+
 git remote set-url --push origin "${CI_PUSH_REPO}"
 
 git add version
 git commit -m "bump version to $NEW_VERSION"
 git push origin ci_processing:${CI_COMMIT_REF_NAME}
 
+git fetch
 git checkout main
 git branch -D ci_processing
 
@@ -57,9 +59,9 @@ PACKAGE_IOS_REGISTRY_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generi
 PACKAGE_ANDROID_REGISTRY_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/vexl_crypto_android/v$NEW_VERSION/"
 PACKAGE_LINUX_REGISTRY_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/vexl_crypto_linux/v$NEW_VERSION/"
 
-curl --header "JOB-TOKEN: $CI_JOB_TOKEN" -T ./product/apple/$VEXL_IOS_FRAMEWORK PACKAGE_IOS_REGISTRY_URL
+curl --header "JOB-TOKEN: $CI_JOB_TOKEN" -T ./product/apple/$VEXL_IOS_FRAMEWORK $PACKAGE_IOS_REGISTRY_URL
 curl --header "JOB-TOKEN: $CI_JOB_TOKEN" -T ./product/android/$VEXL_ANDROID_FRAMEWORK $PACKAGE_ANDROID_REGISTRY_URL
-curl --header "JOB-TOKEN: $CI_JOB_TOKEN" -T ./product/linux/$VEXL_LINUX_FRAMEWORK PACKAGE_LINUX_REGISTRY_URL
+curl --header "JOB-TOKEN: $CI_JOB_TOKEN" -T ./product/linux/$VEXL_LINUX_FRAMEWORK $PACKAGE_LINUX_REGISTRY_URL
 
 release-cli create \
     --name "Vexl crypto library v$NEW_VERSION" \
