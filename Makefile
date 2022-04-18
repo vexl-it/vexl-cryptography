@@ -265,8 +265,8 @@ $(TMPFOLDER)/$(CURRENTARCH)/$(TESTFOLDER)/%.o: $(TESTFOLDER)/%.c
 run:
 	@$(TESTBIN)
 
-run-test:
-	@$(TESTBIN) -p 1000
+run-performance:
+	@$(TESTBIN) -p 100
 
 clean:
 	rm -rf $(DEPFILES) $(TMPFOLDER) $(PRODUCTFOLDER)
