@@ -10,6 +10,10 @@
 
 #include <stdio.h>
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 typedef enum {
     secp112r1,
     secp112r2,
@@ -83,5 +87,9 @@ typedef enum {
 } Curve;
 
 char *_get_group_name(Curve curve);
+
+# ifdef  __cplusplus
+}
+# endif
 
 #endif

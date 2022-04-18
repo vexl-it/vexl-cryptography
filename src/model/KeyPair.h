@@ -22,6 +22,10 @@
 #include "../common/Log.h"
 #include "../common/OpenSSLHelper.h"
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 typedef struct {
     char *pemPrivateKey;
     char *pemPublicKey;
@@ -37,5 +41,9 @@ EC_KEY *_KeyPair_get_EC_KEY(const KeyPair keys);
 
 KeyPair generate_key_pair(Curve curve);
 void KeyPair_free(KeyPair KeyPair);
+
+# ifdef  __cplusplus
+}
+# endif
 
 #endif

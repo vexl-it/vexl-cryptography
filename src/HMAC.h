@@ -23,10 +23,17 @@
 
 #include "common/Constants.h"
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 char *hmac_digest(const char *password, const char *message);
 bool hmac_verify(const char *password, const char *message, const char *digest);
 void _hmac_digest(const char *password, const int password_len, const char *message, const int message_len, char **digest, int *digest_len);
 bool _hmac_verify(const char *password, const int password_len, const char *message, const int message_len, const char *digest, const int digest_len);
 
+# ifdef  __cplusplus
+}
+# endif
 
 #endif

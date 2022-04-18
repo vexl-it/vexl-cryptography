@@ -32,11 +32,19 @@
 #include "AES.h"
 #include "HMAC.h"
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 void ecies_init();
 
 char *ecies_encrypt(KeyPair keys, const char *message);
 char *ecies_decrypt(KeyPair keys, const char *encoded_cipher);
 void _ecies_encrypt(KeyPair keys, const char *message, const int message_len, char **encoded_cipher);
 void _ecies_decrypt(KeyPair keys, const char *encoded_cipher, char **message, int *message_len);
+
+# ifdef  __cplusplus
+}
+# endif
 
 #endif

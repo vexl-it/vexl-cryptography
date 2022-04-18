@@ -23,9 +23,17 @@
 #include "common/Constants.h"
 #include "common/Base64.h"
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 char *aes_encrypt(const char *password, const char *message);
 char *aes_decrypt(const char *password, const char *cipher);
 void _aes_encrypt(const char *password, const int password_len, const char *message, const int message_len, char **cipher, int *cipher_len);
 void _aes_decrypt(const char *password, const int password_len, const char *cipher, const int cipher_len, char **message, int *message_len);
+
+# ifdef  __cplusplus
+}
+# endif
 
 #endif

@@ -10,6 +10,10 @@
 
 #include "../common/Base64.h"
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 typedef struct {
     char *cipher;
     unsigned int cipher_len;
@@ -24,5 +28,9 @@ void cipher_free(Cipher *cipher);
 
 char *cipher_encode(Cipher *cipher);
 Cipher *cipher_decode(char *digest);
+
+# ifdef  __cplusplus
+}
+# endif
 
 #endif
