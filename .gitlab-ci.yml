@@ -9,8 +9,8 @@ build:
   only:
     - merge_requests
   script:
-    - make
-    - make run-test
+    - make all
+    - make run-performance
 
 deploy_patch:
   stage: deploy

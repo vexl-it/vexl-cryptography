@@ -87,6 +87,6 @@ void test_performance(int count) {
         test_asymetric_performance((Curve) i, count);
     }
 
-    log_message("Testing ECIES performance");
+    log_message("Testing AES performance");
     test_symetric_performance(count);
 }

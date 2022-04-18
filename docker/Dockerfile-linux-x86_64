@@ -1,0 +1,9 @@
+FROM amd64/ubuntu:focal
+
+RUN apt-get update
+RUN apt-get install -y gcc make perl build-essential
+RUN mkdir /root/vexl
+
+WORKDIR "/root/vexl"
+
+CMD ["/usr/bin/make","linux-x86_64"]

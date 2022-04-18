@@ -1,5 +1,5 @@
 #!/bin/bash
-LIBFOLDER="$PWD/openssl"
+LIBFOLDER="$PWD/../openssl"
 TMPFOLDER="$LIBFOLDER/tmp"
 OPENSSLREPO="$LIBFOLDER/repo"
 PRODUCTFOLDER="$LIBFOLDER/lib"
@@ -11,12 +11,15 @@ OUTPUT_IOS_SIMULATOR_X86_64="$PRODUCTFOLDER/ios-simulator-x86_64"
 OUTPUT_IOS_SIMULATOR_ARM64="$PRODUCTFOLDER/ios-simulator-arm64"
 OUTPUT_IOS_ARM64="$PRODUCTFOLDER/ios-arm64"
 
-OUTPUT_ANDROID_ARM64="$PRODUCTFOLDER/android-arm64"
+OUTPUT_ANDROID_ARMV8="$PRODUCTFOLDER/android-armv8"
 OUTPUT_ANDROID_ARMV4="$PRODUCTFOLDER/android-armv4"
 OUTPUT_ANDROID_X86="$PRODUCTFOLDER/android-x86"
 OUTPUT_ANDROID_X86_64="$PRODUCTFOLDER/android-x86_64"
 
-TARGETS=(DARWIN_ARM64 DARWIN_X86_64, IOS_SIMULATOR_X86_64, IOS_SIMULATOR_ARM64, IOS_ARM64, ANDROID_ARM64, ANDROID_ARMV4, ANDROID_X86, ANDROID_X86_64)
+OUTPUT_LINUX_ARM64="$PRODUCTFOLDER/linux-arm64"
+OUTPUT_LINUX_X86_64="$PRODUCTFOLDER/linux-x86_64"
+
+TARGETS=(DARWIN_ARM64 DARWIN_X86_64, IOS_SIMULATOR_X86_64, IOS_SIMULATOR_ARM64, IOS_ARM64, ANDROID_ARMV8, ANDROID_ARMV4, ANDROID_X86, ANDROID_X86_64, LINUX_ARM64, LINUX_X86_64)
 TARGETSCOUNT=${#TARGETS[@]}
 CURRENTUSER="$(whoami)"
 
@@ -29,10 +32,12 @@ printHelp() {
     echo "    -isa, --ios-simulator-arm64    Creates arm openssl static library for iOS simulator running on Apple silicon SoC"
     echo "    -isx, --ios-simulator-x86_64   Creates x86_64 openssl static library for iOS simulator running on Intel CPU"
     echo "    -ia,  --ios-arm64              Creates arm openssl static library for iOS"
-    echo "    -aav4,  --android-armv4        Creates arm openssl static library for devices running linux with 32-bit ARMv4 SoC"
-    echo "    -aa64,  --android-arm64        Creates arm openssl static library for devices running linux with 64-bit ARMv8 or ARM64 SoC"
-    echo "    -ax64,  --android-x86_64       Creates arm openssl static library for devices running on x86_64 CPU"
-    echo "    -ax,  --android-x86            Creates arm openssl static library for devices running on x86 CPU"
+    echo "    -aav7,  --android-armv7        Creates openssl static library for android devices running linux with 32-bit ARMv4 SoC"
+    echo "    -aav8,  --android-armv8        Creates openssl static library for android devices running linux with 64-bit ARMv8 or ARM64 SoC"
+    echo "    -ax64,  --android-x86_64       Creates openssl static library for android devices running on x86_64 CPU"
+    echo "    -ax86,  --android-x86          Creates openssl static library for android devices running on x86 CPU"
+    echo "    -la,  --linux-arm64            Creates openssl static library for android devices running linux with 64-bit ARMv8 or ARM64 SoC"
+    echo "    -lx,  --linux-x86_64           Creates openssl static library for android devices running on x86_64 CPU"
 }
 
 build() {
@@ -55,8 +60,8 @@ build() {
         IOS_ARM64)
             outputPath=$OUTPUT_IOS_ARM64
             ;;
-        ANDROID_ARM64)
-            outputPath=$OUTPUT_ANDROID_ARM64
+        ANDROID_ARMV8)
+            outputPath=$OUTPUT_ANDROID_ARMV8
             ;;
         ANDROID_ARMV4)
             outputPath=$OUTPUT_ANDROID_ARMV4
@@ -66,6 +71,12 @@ build() {
             ;;
         ANDROID_X86_64)
             outputPath=$OUTPUT_ANDROID_X86_64
+            ;;
+        LINUX_ARM64)
+            outputPath=$OUTPUT_LINUX_ARM64
+            ;;
+        LINUX_X86_64)
+            outputPath=$OUTPUT_LINUX_X86_64
             ;;
         *)
             echo "[OPENSSL] Did not match any target ($targetName)"
@@ -115,7 +126,7 @@ build() {
             export PATH="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin:$PATH"
             ./Configure ios64-cross no-shared no-dso no-hw no-engine --prefix="$outputPath"
             ;;
-        ANDROID_ARM64)
+        ANDROID_ARMV8)
             echo "[OPENSSL] Building for android@arm64"
             export ANDROID_NDK_ROOT="/Users/$CURRENTUSER/Library/Android/sdk/ndk/24.0.8215888"
             export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
@@ -138,6 +149,14 @@ build() {
             export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
             echo "[OPENSSL] Building for android@x86"
             ./Configure android-x86 --prefix="$outputPath" no-shared
+            ;;
+        LINUX_ARM64)
+            echo "[OPENSSL] Building for linux@arm64"
+            ./config linux-aarch64 --prefix="$outputPath" no-shared
+            ;;
+        LINUX_X86_64)
+            echo "[OPENSSL] Building for linux@x86_64"
+            ./config linux-x86_64 --prefix="$outputPath" no-shared
             ;;
         *)
             echo "[OPENSSL] Did not match any target ($targetName)"
@@ -165,9 +184,8 @@ else
 fi
 
 if [ "$#" = 0 ]; then
-    for ((i=0; i < ${#TARGETS[@]}; i++)); do
-        build ${TARGETS[i]} &
-    done
+    printHelp
+    exit
 else 
     while [[ $# -gt 0 ]]; do
         case $1 in
@@ -195,17 +213,29 @@ else
                 build ANDROID_ARMV4  $OUTPUT_ANDROID_ARMV4
                 shift
                 ;;
-            -aa64|--android-arm64 )
-                build ANDROID_ARM64  $OUTPUT_ANDROID_ARM64
+            -aav8|--android-armv8 )
+                build ANDROID_ARMV8  $OUTPUT_ANDROID_ARMV8
                 shift
                 ;;
             -ax64|--android-x86_64 )
                 build ANDROID_X86_64  $OUTPUT_ANDROID_X86_64
                 shift
                 ;;
-            -ax|--android-x86 )
+            -ax86|--android-x86 )
                 build ANDROID_X86  $OUTPUT_ANDROID_X86
                 shift
+                ;;
+            -la|--linux-arm64 )
+                build LINUX_ARM64  $OUTPUT_LINUX_ARM64
+                shift
+                ;;
+            -lx|--linux-x86_64 )
+                build LINUX_X86_64  $OUTPUT_LINUX_X86_64
+                shift
+                ;;
+            -h|--help )
+                printHelp
+                exit 0
                 ;;
             -*|--*)
                 printHelp

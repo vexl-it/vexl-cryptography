@@ -19,21 +19,24 @@ LIBTOOL=libtool
 
 TMPFOLDER=tmp
 PRODUCTFOLDER=product
+ANDROIDFOLDER=$(PRODUCTFOLDER)/android/vexl-crypto.framework
 SRCFOLDER=src
 TESTFOLDER=tests
-OPENSSLFOLDER=openssl
+OPENSSLFOLDER=../openssl
 SSLINCLUDE=$(OPENSSLFOLDER)/include
 SSLLIB=$(OPENSSLFOLDER)/lib
 TESTBIN=$(PRODUCTFOLDER)/$(TESTFOLDER)/test
 
 # Compiler flags
-CFLAGS=-MP -MD -g -w
+CFLAGS=-MP -MD -g -w -fPIC
 LCFLAGS= $(CFLAGS) -DBUILD_FOR_LIBRARY
 
 # ARCH variables
 APPLE_ARCHITECTURES=darwin-x86_64 darwin-arm64 ios-simulator-x86_64 ios-simulator-arm64 ios-arm64
-ANDROID_ARCHITECTURES=android-arm64 android-armv4 android-x86 android-x86_64
-ARCHITECTURES=$(APPLE_ARCHITECTURES) $(APPLE_ARCHITECTURES)
+ANDROID_ARCHITECTURES=android-armv8 android-armv4 android-x86 android-x86_64
+DOCKER_LINUX_ARCHITECTURES=docker-linux-arm64 docker-linux-x86_64
+LINUX_ARCHITECTURES=linux-arm64 linux-x86_64
+ARCHITECTURES=$(APPLE_ARCHITECTURES) $(APPLE_ARCHITECTURES) $(DOCKER_LINUX_ARCHITECTURES)
 
 ARCHOFOLDERS=$(foreach ARCH,$(ARCHITECTURES),$(TMPFOLDER)/$(ARCH))
 CURRENTARCH=$(shell uname | tr A-Z a-z)-$(shell uname -m | tr A-Z a-z)
@@ -51,7 +54,8 @@ ANDROID_AR=$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-a
 # OpenSSL builds
 OPENSSL_APPLE_TARGETS=$(foreach ARCH, $(APPLE_ARCHITECTURES), build-openssl-$(ARCH))
 OPENSSL_ANDROID_TARGETS=$(foreach ARCH, $(ANDROID_ARCHITECTURES), build-openssl-$(ARCH))
-OPENSSLTARGETS=$(OPENSSL_APPLE_TARGETS) $(OPENSSL_ANDROID_TARGETS)
+OPENSSL_LINUX_TARGETS=$(foreach ARCH, $(LINUX_ARCHITECTURES), build-openssl-$(ARCH))
+OPENSSLTARGETS=$(OPENSSL_APPLE_TARGETS) $(OPENSSL_ANDROID_TARGETS) $(OPENSSL_LINUX_TARGETS)
 
 # Library files
 SRCFOLDER=src
@@ -77,7 +81,7 @@ DEPFILES=$(patsubst %.c,%.d,$(ALLCFILES))
 
 build-current: build-openssl-$(CURRENTARCH) $(CURRENTARCH) test
 
-all: apple android test
+all: apple android linux test
 
 $(OPENSSLTARGETS):
 	./build.sh --$(@:build-openssl-%=%)
@@ -92,12 +96,18 @@ apple: $(OPENSSL_APPLE_TARGETS) $(APPLE_ARCHITECTURES)
 	$(eval LIBS := $(foreach ARCH, $(LIBFARCH), \
 		-library $(PRODUCTFOLDER)/$(ARCH)/lib/libvc.a -headers $(PRODUCTFOLDER)/$(ARCH)/include \
 	))
-	xcodebuild -create-xcframework $(LIBS) -output $(PRODUCTFOLDER)/apple/vexl.xcframework
-	zip -q -r $(PRODUCTFOLDER)/apple/vexl_crypto_ios_xcframework.zip $(PRODUCTFOLDER)/apple/vexl.xcframework
+	xcodebuild -create-xcframework $(LIBS) -output $(PRODUCTFOLDER)/apple/vexl-crypto.xcframework
+	zip -q -r $(PRODUCTFOLDER)/apple/vexl_crypto_ios_xcframework.zip $(PRODUCTFOLDER)/apple/vexl-crypto.xcframework
 
 android: $(OPENSSL_ANDROID_TARGETS) $(ANDROID_ARCHITECTURES)
-	@mkdir -p $(PRODUCTFOLDER)/android
-	cd $(PRODUCTFOLDER) && zip -r android/vexl_crypto_android_frameworks.zip android-arm64 android-armv4 android-x86 android-x86_64
+	@mkdir -p $(ANDROIDFOLDER)/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(ANDROIDFOLDER)/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(ANDROIDFOLDER)/include/vc
+	cd $(ANDROIDFOLDER)/.. && zip -r vexl_crypto_android_frameworks.zip vexl-crypto.framework
+
+linux: $(DOCKER_LINUX_ARCHITECTURES)
+	@mkdir -p $(PRODUCTFOLDER)/linux
+	cd $(PRODUCTFOLDER) && zip -r linux/vexl_crypto_linux_frameworks.zip linux-arm64 linux-x86_64
 
 darwin-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwin-x86_64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
@@ -122,7 +132,6 @@ darwin-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwin
 $(TMPFOLDER)/darwin-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot $(MACOS_SDK) -c -o $@ $< -target macos-arm64
-
 
 ios-simulator-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/ios-simulator-x86_64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
@@ -160,54 +169,81 @@ $(TMPFOLDER)/ios-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot $(IOS_SDK) -c -o $@ $< -target arm64-apple-ios
 
-android-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-arm64/$(CFILE)))
-	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
-	$(X86) $(ANDROID_AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
-	@cp $(SSLLIB)/$@/lib/libcrypto.a $(PRODUCTFOLDER)/$@/lib/libcrypto.a
-	@cp $(SSLLIB)/$@/lib/libssl.a $(PRODUCTFOLDER)/$@/lib/libssl.a
-	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
-	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
+android-armv8: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-armv8/$(CFILE)))
+	@mkdir -p $(ANDROIDFOLDER)/arm64-v8a
+	$(X86) $(ANDROID_AR) rcs -v $(ANDROIDFOLDER)/arm64-v8a/libvc.a $^
+	@cp $(SSLLIB)/$@/lib/libcrypto.a $(ANDROIDFOLDER)/arm64-v8a/libcrypto.a
+	@cp $(SSLLIB)/$@/lib/libssl.a $(ANDROIDFOLDER)/arm64-v8a/libssl.a
 
-$(TMPFOLDER)/android-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+$(TMPFOLDER)/android-armv8/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(X86) $(ANDROID_ARM64_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
 android-armv4: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-armv4/$(CFILE)))
-	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
-	$(X86) $(ANDROID_AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
-	@cp $(SSLLIB)/$@/lib/libcrypto.a $(PRODUCTFOLDER)/$@/lib/libcrypto.a
-	@cp $(SSLLIB)/$@/lib/libssl.a $(PRODUCTFOLDER)/$@/lib/libssl.a
-	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
-	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
+	@mkdir -p $(ANDROIDFOLDER)/armeabi-v7a
+	$(X86) $(ANDROID_AR) rcs -v $(ANDROIDFOLDER)/armeabi-v7a/libvc.a $^
+	@cp $(SSLLIB)/$@/lib/libcrypto.a $(ANDROIDFOLDER)/armeabi-v7a/libcrypto.a
+	@cp $(SSLLIB)/$@/lib/libssl.a $(ANDROIDFOLDER)/armeabi-v7a/libssl.a
 
 $(TMPFOLDER)/android-armv4/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(X86) $(ANDROID_ARMv7_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
 android-x86: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-x86/$(CFILE)))
-	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
-	$(X86) $(ANDROID_AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
-	@cp $(SSLLIB)/$@/lib/libcrypto.a $(PRODUCTFOLDER)/$@/lib/libcrypto.a
-	@cp $(SSLLIB)/$@/lib/libssl.a $(PRODUCTFOLDER)/$@/lib/libssl.a
-	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
-	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
+	@mkdir -p $(ANDROIDFOLDER)/x86
+	$(X86) $(ANDROID_AR) rcs -v $(ANDROIDFOLDER)/x86/libvc.a $^
+	@cp $(SSLLIB)/$@/lib/libcrypto.a $(ANDROIDFOLDER)/x86/libcrypto.a
+	@cp $(SSLLIB)/$@/lib/libssl.a $(ANDROIDFOLDER)/x86/libssl.a
 
 $(TMPFOLDER)/android-x86/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(X86) $(ANDROID_X86_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
-
 android-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-x86_64/$(CFILE)))
-	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
-	$(X86) $(ANDROID_AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
-	@cp $(SSLLIB)/$@/lib/libcrypto.a $(PRODUCTFOLDER)/$@/lib/libcrypto.a
-	@cp $(SSLLIB)/$@/lib/libssl.a $(PRODUCTFOLDER)/$@/lib/libssl.a
-	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
-	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
+	@mkdir -p $(ANDROIDFOLDER)/x86_64
+	$(X86) $(ANDROID_AR) rcs -v $(ANDROIDFOLDER)/x86_64/libvc.a $^
+	@cp $(SSLLIB)/$@/lib/libcrypto.a $(ANDROIDFOLDER)/x86_64/libcrypto.a
+	@cp $(SSLLIB)/$@/lib/libssl.a $(ANDROIDFOLDER)/x86_64/libssl.a
 
 $(TMPFOLDER)/android-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(X86) $(ANDROID_X86_64_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
+
+docker-linux-arm64:
+	docker build --tag linux-arm64 - < ./docker/Dockerfile-linux-arm64
+	docker run -v $(shell pwd):/root/vexl -v $(shell pwd)/../openssl:/root/openssl --rm --name linux-arm64 --platform=linux/aarch64 linux-arm64
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$(@:docker-%=%)/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$(@:docker-%=%)/include/vc
+
+linux-arm64: build-openssl-linux-arm64 build-linux-arm64
+
+build-linux-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/linux-arm64/$(CFILE)))
+	@mkdir -p $(PRODUCTFOLDER)/$(@:build-%=%)/lib $(PRODUCTFOLDER)/$(@:build-%=%)/include/vc
+	$(AR) rcs -v $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libvc.a $^
+	@cp $(SSLLIB)/$(@:build-%=%)/lib/libcrypto.a $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libcrypto.a
+	@cp $(SSLLIB)/$(@:build-%=%)/lib/libssl.a $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libssl.a
+
+$(TMPFOLDER)/linux-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
+
+docker-linux-x86_64:
+	docker build --tag linux-x86_64 - < ./docker/Dockerfile-linux-x86_64
+	docker run -v $(shell pwd):/root/vexl -v $(shell pwd)/../openssl:/root/openssl --rm --name linux-x86_64 --platform=linux/amd64 linux-x86_64
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$(@:docker-%=%)/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$(@:docker-%=%)/include/vc
+
+linux-x86_64: build-openssl-linux-x86_64 build-linux-x86_64
+
+build-linux-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/linux-x86_64/$(CFILE)))
+	@mkdir -p $(PRODUCTFOLDER)/$(@:build-%=%)/lib $(PRODUCTFOLDER)/$(@:build-%=%)/include/vc
+	$(AR) rcs -v $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libvc.a $^
+	@cp $(SSLLIB)/$(@:build-%=%)/lib64/libcrypto.a $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libcrypto.a
+	@cp $(SSLLIB)/$(@:build-%=%)/lib64/libssl.a $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libssl.a
+
+$(TMPFOLDER)/linux-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
 test: $(CURRENTARCH) test-$(CURRENTARCH)
 
@@ -222,8 +258,8 @@ $(TMPFOLDER)/$(CURRENTARCH)/$(TESTFOLDER)/%.o: $(TESTFOLDER)/%.c
 run:
 	@$(TESTBIN)
 
-run-test:
-	@$(TESTBIN) -p 1000
+run-performance:
+	@$(TESTBIN) -p 100
 
 clean:
 	rm -rf $(DEPFILES) $(TMPFOLDER) $(PRODUCTFOLDER)
