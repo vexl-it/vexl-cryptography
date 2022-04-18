@@ -9,7 +9,7 @@ build:
   only:
     - merge_requests
   script:
-    - make
+    - make all
     - make run-performance
 
 deploy_patch:

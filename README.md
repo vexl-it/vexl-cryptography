@@ -10,7 +10,7 @@ This library includes implemention of following algorithms:
 ```
 
 ## Dependencies
-This script assumes, you use Mac with Apple silicon for building the library. Althought It should be possible to use the intel mac variant, you may run into compatibility issues when compiling for arm targets.
+This project assumes, you use Mac with Apple silicon for building the library. Althought It should be possible to use the intel mac variant, you may run into compatibility issues when compiling for arm targets.
 
 ### Dependencies for Android targets
 To be able to compile the android target for this library, please install android studio and the latest Native Developer Kit (NDK). The NDK provides cross-compilers for the android platform with various ABIs.
