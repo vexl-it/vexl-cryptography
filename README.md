@@ -36,7 +36,7 @@ VC currently supports following targets:
  - linux-aarch64        (linux running on a 64-bit arm cpu)
 ```
 
-To build every the vexl crypto library for all targets, just run
+To build the vexl crypto library for all targets, just run
 
 ```shell
 make all
