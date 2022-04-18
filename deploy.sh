@@ -69,4 +69,4 @@ release-cli create \
     --assets-link "{\"name\":\"$VEXL_ANDROID_FRAMEWORK\",\"url\":\"$PACKAGE_ANDROID_REGISTRY_URL$VEXL_ANDROID_FRAMEWORK\"}" \
     --assets-link "{\"name\":\"$VEXL_LINUX_FRAMEWORK\",\"url\":\"$PACKAGE_LINUX_REGISTRY_URL$VEXL_LINUX_FRAMEWORK\"}"
 
-curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"New Release v$NEW_VERSION :tada:\n\nNew version of Vexl crypto library has been released for :apple: iOS and :android: Android\n\nCheck check out the releases in the gitlab release page.\n\nhttps://gitlab.cleevio.cz/clients/vexl-cryptography/-/releases\"}" https://hooks.slack.com/services/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
+curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"New Release v$NEW_VERSION :tada:\n\nNew version of Vexl crypto library has been released for :apple: iOS, :android: Android and :tux: Linux \n\nCheck check out the releases in the gitlab release page.\n\nhttps://gitlab.cleevio.cz/clients/vexl-cryptography/-/releases\"}" https://hooks.slack.com/services/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
