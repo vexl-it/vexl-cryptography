@@ -34,7 +34,7 @@ void cipher_free(Cipher *cipher) {
 
 char *_cipher_encode_len(const int len, int *out_len_len) {
     if (len == 0) {
-        *out_len_len = 1;
+        *out_len_len = 0;
         char *digits = malloc(1);
         digits[0] = '0';
         return digits;
@@ -84,11 +84,6 @@ char *cipher_encode(Cipher *cipher) {
     }
     digest[offset] = 0;
 
-    for (int i = 0; i < 3; i++) {
-        if (content[i] == NULL)
-            free(content[i]);
-        free(lens[i]);
-    }
     return digest;
 }
 

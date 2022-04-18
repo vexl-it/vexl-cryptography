@@ -51,10 +51,6 @@ EC_KEY *_KeyPair_get_EC_KEY(const KeyPair keys) {
 }
 
 KeyPair generate_key_pair(const Curve curve) {
-    OpenSSL_add_all_algorithms();
-    ERR_load_BIO_strings();
-    ERR_load_crypto_strings();
-    
     int eccgrp = OBJ_txt2nid(_get_group_name(curve));
     EC_KEY *myecc = EC_KEY_new_by_curve_name(eccgrp);
 
@@ -64,13 +60,12 @@ KeyPair generate_key_pair(const Curve curve) {
         _error(3, "Error generating the ECC key.");
     }
     
-    EVP_PKEY *pkey=EVP_PKEY_new();
-    if (!EVP_PKEY_assign_EC_KEY(pkey,myecc)) {
+    EVP_PKEY *pkey = EVP_PKEY_new();
+    if (!EVP_PKEY_assign_EC_KEY(pkey, myecc)) {
         _error(4, "Error assigning ECC key to EVP_PKEY structure.");
     }
-    
+
     myecc = EVP_PKEY_get1_EC_KEY(pkey);
-    const EC_GROUP *ecgrp = EC_KEY_get0_group(myecc);
 
     KeyPair keys = _EVP_PKEY_get_KeyPair(pkey);
 

@@ -52,8 +52,8 @@ git branch -D ci_processing
 
 VEXL_IOS_FRAMEWORK="vexl_crypto_ios_xcframework.zip"
 VEXL_ANDROID_FRAMEWORK="vexl_crypto_android_frameworks.zip"
-PACKAGE_IOS_REGISTRY_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/vexl_crypto_ios/v$NEW_VERSION"
-PACKAGE_ANDROID_REGISTRY_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/vexl_crypto_android/v$NEW_VERSION"
+PACKAGE_IOS_REGISTRY_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/vexl_crypto_ios/v$NEW_VERSION/"
+PACKAGE_ANDROID_REGISTRY_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/vexl_crypto_android/v$NEW_VERSION/"
 
 curl --header "JOB-TOKEN: $CI_JOB_TOKEN" -T ./product/apple/$VEXL_IOS_FRAMEWORK PACKAGE_IOS_REGISTRY_URL
 curl --header "JOB-TOKEN: $CI_JOB_TOKEN" -T ./product/android/$VEXL_ANDROID_FRAMEWORK $PACKAGE_ANDROID_REGISTRY_URL
@@ -62,7 +62,7 @@ release-cli create \
     --name "Vexl crypto library for iOS v$NEW_VERSION" \
     --tag-name "v$NEW_VERSION" \
     --ref "$CI_COMMIT_SHA" \
-    --assets-link "{\"name\":\"$VEXL_IOS_FRAMEWORK\",\"url\":\"$PACKAGE_IOS_REGISTRY_URL/$VEXL_IOS_FRAMEWORK\"}" \
-    --assets-link "{\"name\":\"$VEXL_ANDROID_FRAMEWORK\",\"url\":\"$PACKAGE_ANDROID_REGISTRY_URL/$VEXL_ANDROID_FRAMEWORK\"}"
+    --assets-link "{\"name\":\"$VEXL_IOS_FRAMEWORK\",\"url\":\"$PACKAGE_IOS_REGISTRY_URL$VEXL_IOS_FRAMEWORK\"}" \
+    --assets-link "{\"name\":\"$VEXL_ANDROID_FRAMEWORK\",\"url\":\"$PACKAGE_ANDROID_REGISTRY_URL$VEXL_ANDROID_FRAMEWORK\"}"
 
-curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"New Release v$NEW_VERSION :tada:\n\n New version of Vexl crypto library has been released for :apple: iOS and :android: Android\n\nCheck check out the releases in the gitlab release page.\n\n https://gitlab.cleevio.cz/clients/vexl-cryptography/-/releases\"}" https://hooks.slack.com/services/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
+curl -X POST -H 'Content-type: application/json' --data "{\"text\":\"New Release v$NEW_VERSION :tada:\n\nNew version of Vexl crypto library has been released for :apple: iOS and :android: Android\n\nCheck check out the releases in the gitlab release page.\n\nhttps://gitlab.cleevio.cz/clients/vexl-cryptography/-/releases\"}" https://hooks.slack.com/services/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

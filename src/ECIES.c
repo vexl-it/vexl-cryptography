@@ -40,7 +40,7 @@ int EC_KEY_public_derive_S(const EC_KEY *key, point_conversion_form_t fmt, BIGNU
 	EC_POINT *Rp = EC_POINT_new(group);
 	BIGNUM *Py = BN_new();
 	const EC_POINT *G = EC_GROUP_get0_generator(group);
-	int bits,ret=-1;
+	int bits, ret=-1;
 	EC_GROUP_get_order(group, n, ctx);
 	bits = BN_num_bits(n);
 	BN_rand(r, bits, -1, 0);
@@ -78,7 +78,7 @@ int EC_KEY_private_derive_S(const EC_KEY *key, const BIGNUM *R, BIGNUM *S) {
 		ret = 0;
 	}
 	BN_free(n);
-	BN_free(Py);
+    BN_free(Py);
 	EC_POINT_free(Rp);
 	EC_POINT_free(P);
 	BN_CTX_free(ctx);
