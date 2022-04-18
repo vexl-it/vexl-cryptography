@@ -32,7 +32,7 @@ LCFLAGS= $(CFLAGS) -DBUILD_FOR_LIBRARY
 
 # ARCH variables
 APPLE_ARCHITECTURES=darwin-x86_64 darwin-arm64 ios-simulator-x86_64 ios-simulator-arm64 ios-arm64
-ANDROID_ARCHITECTURES=android-arm64 android-armv4 android-x86 android-x86_64
+ANDROID_ARCHITECTURES=android-armv8 android-armv4 android-x86 android-x86_64
 DOCKER_LINUX_ARCHITECTURES=docker-linux-arm64 docker-linux-x86_64
 LINUX_ARCHITECTURES=linux-arm64 linux-x86_64
 ARCHITECTURES=$(APPLE_ARCHITECTURES) $(APPLE_ARCHITECTURES) $(DOCKER_LINUX_ARCHITECTURES)
@@ -100,7 +100,7 @@ apple: $(OPENSSL_APPLE_TARGETS) $(APPLE_ARCHITECTURES)
 
 android: $(OPENSSL_ANDROID_TARGETS) $(ANDROID_ARCHITECTURES)
 	@mkdir -p $(PRODUCTFOLDER)/android
-	cd $(PRODUCTFOLDER) && zip -r android/vexl_crypto_android_frameworks.zip android-arm64 android-armv4 android-x86 android-x86_64
+	cd $(PRODUCTFOLDER) && zip -r android/vexl_crypto_android_frameworks.zip android-armv8 android-armv4 android-x86 android-x86_64
 
 linux: $(DOCKER_LINUX_ARCHITECTURES)
 	@mkdir -p $(PRODUCTFOLDER)/linux
@@ -167,7 +167,7 @@ $(TMPFOLDER)/ios-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot $(IOS_SDK) -c -o $@ $< -target arm64-apple-ios
 
-android-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-arm64/$(CFILE)))
+android-armv8: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-armv8/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
 	$(X86) $(ANDROID_AR) rcs -v $(PRODUCTFOLDER)/$@/lib/libvc.a $^
 	@cp $(SSLLIB)/$@/lib/libcrypto.a $(PRODUCTFOLDER)/$@/lib/libcrypto.a
@@ -175,7 +175,7 @@ android-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/andro
 	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$@/include/vc
 	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$@/include/vc
 
-$(TMPFOLDER)/android-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+$(TMPFOLDER)/android-armv8/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(X86) $(ANDROID_ARM64_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
