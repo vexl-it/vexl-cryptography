@@ -64,6 +64,12 @@ make linux
 ```
 The archive for all resulting architectures can be found in `./product/linux/vexl_crypto_linux_frameworks.zip`
 
+### Cleaning the build
+Sometimes it is useful to run the `make` command from scratch. For cleaning all the build files run
+```shell
+make clean
+```
+
 ## Building OpenSSL library
 Vexl crypto is built around the open source cryptoraphic library OpenSSL. To be able to support all the platforms and architectures, we provide a custom script for building the openssl library for different targets.
 To build OpenSSL run the script with a specific target arguemnt. To get the list of supported targets, run the help function:
@@ -71,6 +77,8 @@ To build OpenSSL run the script with a specific target arguemnt. To get the list
 ```shell
 ./build.sh --help
 ```
+
+The resulting openssl library can then be found in `../openssl/lib` folder.
 
 ## Testing
 The vexl cyptography repository provides you with two types of tests. Integration tests and a performance tests.
