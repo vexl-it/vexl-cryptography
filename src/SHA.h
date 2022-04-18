@@ -11,6 +11,14 @@
 #include <openssl/sha.h>
 #endif
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 char *sha256_hash(const void *data, const int data_len);
+
+# ifdef  __cplusplus
+}
+# endif
 
 #endif

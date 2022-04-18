@@ -19,7 +19,15 @@
 #include "model/KeyPair.h"
 #include "SHA.h"
 
+# ifdef __cplusplus
+extern "C" {
+# endif
+
 char *ecdsa_sign(const KeyPair keys, const void *data, const int data_len);
 bool ecdsa_verify(const KeyPair pubkey, const void *data, const int data_len, char *signature);
+
+# ifdef  __cplusplus
+}
+# endif
 
 #endif
