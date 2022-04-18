@@ -5,7 +5,7 @@
 #include "Cipher.h"
 
 static const int decimal_base = 10;
-static const char decimals[decimal_base] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
+static const char decimals[10] = { '0', '1', '2', '3', '4', '5', '6', '7', '8', '9' };
 static int isSetup = 0;
 
 Cipher *cipher_new() {

@@ -33,7 +33,9 @@ LCFLAGS= $(CFLAGS) -DBUILD_FOR_LIBRARY
 # ARCH variables
 APPLE_ARCHITECTURES=darwin-x86_64 darwin-arm64 ios-simulator-x86_64 ios-simulator-arm64 ios-arm64
 ANDROID_ARCHITECTURES=android-arm64 android-armv4 android-x86 android-x86_64
-ARCHITECTURES=$(APPLE_ARCHITECTURES) $(APPLE_ARCHITECTURES)
+DOCKER_LINUX_ARCHITECTURES=docker-linux-arm64 docker-linux-x86_64
+LINUX_ARCHITECTURES=linux-arm64 linux-x86_64
+ARCHITECTURES=$(APPLE_ARCHITECTURES) $(APPLE_ARCHITECTURES) $(DOCKER_LINUX_ARCHITECTURES)
 
 ARCHOFOLDERS=$(foreach ARCH,$(ARCHITECTURES),$(TMPFOLDER)/$(ARCH))
 CURRENTARCH=$(shell uname | tr A-Z a-z)-$(shell uname -m | tr A-Z a-z)
@@ -51,7 +53,8 @@ ANDROID_AR=$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-a
 # OpenSSL builds
 OPENSSL_APPLE_TARGETS=$(foreach ARCH, $(APPLE_ARCHITECTURES), build-openssl-$(ARCH))
 OPENSSL_ANDROID_TARGETS=$(foreach ARCH, $(ANDROID_ARCHITECTURES), build-openssl-$(ARCH))
-OPENSSLTARGETS=$(OPENSSL_APPLE_TARGETS) $(OPENSSL_ANDROID_TARGETS)
+OPENSSL_LINUX_TARGETS=$(foreach ARCH, $(LINUX_ARCHITECTURES), build-openssl-$(ARCH))
+OPENSSLTARGETS=$(OPENSSL_APPLE_TARGETS) $(OPENSSL_ANDROID_TARGETS) $(OPENSSL_LINUX_TARGETS)
 
 # Library files
 SRCFOLDER=src
@@ -77,7 +80,7 @@ DEPFILES=$(patsubst %.c,%.d,$(ALLCFILES))
 
 build-current: build-openssl-$(CURRENTARCH) $(CURRENTARCH) test
 
-all: apple android test
+all: apple android linux test
 
 $(OPENSSLTARGETS):
 	./build.sh --$(@:build-openssl-%=%)
@@ -98,6 +101,10 @@ apple: $(OPENSSL_APPLE_TARGETS) $(APPLE_ARCHITECTURES)
 android: $(OPENSSL_ANDROID_TARGETS) $(ANDROID_ARCHITECTURES)
 	@mkdir -p $(PRODUCTFOLDER)/android
 	cd $(PRODUCTFOLDER) && zip -r android/vexl_crypto_android_frameworks.zip android-arm64 android-armv4 android-x86 android-x86_64
+
+linux: $(DOCKER_LINUX_ARCHITECTURES)
+	@mkdir -p $(PRODUCTFOLDER)/linux
+	cd $(PRODUCTFOLDER) && zip -r linux/vexl_crypto_linux_frameworks.zip linux-arm64 linux-x86_64
 
 darwin-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwin-x86_64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
@@ -208,6 +215,24 @@ android-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/andr
 $(TMPFOLDER)/android-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(X86) $(ANDROID_X86_64_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
+
+docker-linux-arm64:
+	docker build --tag linux-arm64 - < ./docker/Dockerfile-linux-arm64
+	docker run -v $(shell pwd):/root/vexl -v $(shell pwd)/../openssl:/root/openssl --rm --name linux-arm64 --platform=linux/aarch64 linux-arm64
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$(@:docker-%=%)/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$(@:docker-%=%)/include/vc
+
+linux-arm64: build-openssl-linux-arm64 build-linux-arm64
+
+build-linux-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/linux-arm64/$(CFILE)))
+	@mkdir -p $(PRODUCTFOLDER)/$(@:build-%=%)/lib $(PRODUCTFOLDER)/$(@:build-%=%)/include/vc
+	$(AR) rcs -v $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libvc.a $^
+	@cp $(SSLLIB)/$(@:build-%=%)/lib/libcrypto.a $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libcrypto.a
+	@cp $(SSLLIB)/$(@:build-%=%)/lib/libssl.a $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libssl.a
+
+$(TMPFOLDER)/linux-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+	@mkdir -p $(dir $@)
+	$(CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
 test: $(CURRENTARCH) test-$(CURRENTARCH)
 
