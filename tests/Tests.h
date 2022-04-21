@@ -18,5 +18,6 @@ void test_aes();
 void test_hmac();
 void test_ecies(Curve curve);
 void test_ecdsa(Curve curve);
+void test_sha();
 
 #endif

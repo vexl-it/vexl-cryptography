@@ -70,3 +70,15 @@ void test_ecdsa(Curve curve) {
     KeyPair_free(privkey);
     free(signature);
 }
+
+void test_sha() {
+    log_message("Testing SHA");
+
+    char content[] = "content";
+    char pre_digest[] = "s3Jw3/orJaGBJtE8OZBkpxx9ZQPc1N27/rgwmQQZ6sk=";
+
+    char *digest = sha256_hash(content, sizeof(content));
+    assert_not_null(digest, "Successfully hashed content");
+
+    assert_equals(digest, pre_digest, "Hash digests equals");
+}
