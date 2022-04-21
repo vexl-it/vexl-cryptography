@@ -33,16 +33,16 @@ void test_hmac() {
 }
 
 void test_ecies(Curve curve) {
-    log_message("Testing encryption");
+    log_message("Testing ECIES asymetric encryption");
 
     KeyPair keys = generate_key_pair(curve);
     KeyPair pubkey = keys;
     pubkey.pemPrivateKey = NULL;
 
-    char *cipher = ecies_encrypt(pubkey, test_message);
+    char *cipher = ecies_encrypt(pubkey.pemPublicKey, test_message);
     assert_not_null(cipher, "Encrypted test message");
 
-    char *message = ecies_decrypt(keys, cipher);
+    char *message = ecies_decrypt(keys.pemPublicKey, keys.pemPrivateKey, cipher);
     assert_not_null(message, "Decrypted test message");
 
     assert_equals(message, test_message, "Encrypted and decrypted data match");
@@ -53,7 +53,7 @@ void test_ecies(Curve curve) {
 }
 
 void test_ecdsa(Curve curve) {
-    log_message("Testing digital signature");
+    log_message("Testing ECDSA digital signature");
 
     KeyPair privkey = generate_key_pair(curve);
     KeyPair pubkey = privkey;
@@ -61,10 +61,10 @@ void test_ecdsa(Curve curve) {
 
     int test_message_len = strlen(test_message);
 
-    char *signature = ecdsa_sign(privkey, test_message, test_message_len);
+    char *signature = ecdsa_sign(privkey.pemPublicKey, privkey.pemPrivateKey, test_message, test_message_len);
     assert_not_null(signature, "Created digital signature");
 
-    bool valid = ecdsa_verify(privkey, test_message, test_message_len, signature);
+    bool valid = ecdsa_verify(privkey.pemPublicKey, test_message, test_message_len, signature);
     assert_true(valid, "Successfully validated digital signature");
 
     KeyPair_free(privkey);
