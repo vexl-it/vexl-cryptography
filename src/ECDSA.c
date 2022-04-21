@@ -8,7 +8,7 @@ char *ecdsa_sign(const KeyPair keys, const void *data, const int data_len) {
     const char *digest = sha256_hash(data, data_len);
     const EC_KEY *eckey = _KeyPair_get_EC_KEY(keys);
 
-    ECDSA_SIG *signature = ECDSA_do_sign(digest, SHA256_DIGEST_LENGTH, eckey);
+    ECDSA_SIG *signature = ECDSA_do_sign(digest, strlen(digest), eckey);
     if (NULL == signature) {
         _error(7, "Failed to generate EC Signature\n");
         return NULL;
@@ -44,7 +44,7 @@ bool ecdsa_verify(const KeyPair pubkey, const void *data, const int data_len, ch
 
     ECDSA_SIG *decoded_signature = d2i_ECDSA_SIG(NULL, &der_signature, signature_len);
 
-    int verify_status = ECDSA_do_verify(digest, SHA256_DIGEST_LENGTH, decoded_signature, eckey);
+    int verify_status = ECDSA_do_verify(digest, strlen(digest), decoded_signature, eckey);
     const int verify_success = 1;
 
     free(digest);
