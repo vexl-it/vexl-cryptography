@@ -30,6 +30,7 @@ int main(int argc, char **argv) {
     ecies_init();
     Curve curve = secp224r1;
 
+    test_sha();
     test_aes();
     test_hmac();
     test_ecies(curve);
