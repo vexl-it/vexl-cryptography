@@ -6,7 +6,7 @@
 
 char *sha256_hash(const void *data, const int data_len) {
     SHA256_CTX context;
-    char *hash = malloc(SHA256_DIGEST_LENGTH);
+    char digest[SHA256_DIGEST_LENGTH];
 
     if(!SHA256_Init(&context))
         return NULL;
@@ -14,8 +14,12 @@ char *sha256_hash(const void *data, const int data_len) {
     if(!SHA256_Update(&context, (unsigned char*)data, data_len))
         return NULL;
 
-    if(!SHA256_Final(hash, &context))
+    if(!SHA256_Final(digest, &context))
         return NULL;
 
-    return hash;
+    char *output;
+    int output_len = 0;
+    base64_encode(digest, SHA256_DIGEST_LENGTH, &output_len, &output);
+
+    return output;
 }

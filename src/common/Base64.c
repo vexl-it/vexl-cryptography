@@ -69,7 +69,8 @@ void base64_decode(const char *data, size_t input_length, size_t *output_length,
     if (data[input_length - 1] == '=') (*output_length)--;
     if (data[input_length - 2] == '=') (*output_length)--;
 
-    unsigned char *decoded_data = malloc(*output_length);
+    unsigned char *decoded_data = malloc(*output_length+1);
+    decoded_data[*output_length] = 0;
     if (decoded_data == NULL) return;
 
     for (int i = 0, j = 0; i < input_length;) {

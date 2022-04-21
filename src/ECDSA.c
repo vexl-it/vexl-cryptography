@@ -4,11 +4,12 @@
 
 #include "ECDSA.h"
 
-char *ecdsa_sign(const KeyPair keys, const void *data, const int data_len) {
+char *ecdsa_sign(const char* base64_public_key, const char* base64_private_key, const void *data, const int data_len) {
     const char *digest = sha256_hash(data, data_len);
-    const EC_KEY *eckey = _KeyPair_get_EC_KEY(keys);
+    EC_KEY *eckey;
+    _base64_keys_get_EC_KEY(base64_public_key, base64_private_key, &eckey);
 
-    ECDSA_SIG *signature = ECDSA_do_sign(digest, SHA256_DIGEST_LENGTH, eckey);
+    ECDSA_SIG *signature = ECDSA_do_sign(digest, strlen(digest), eckey);
     if (NULL == signature) {
         _error(7, "Failed to generate EC Signature\n");
         return NULL;
@@ -30,9 +31,11 @@ char *ecdsa_sign(const KeyPair keys, const void *data, const int data_len) {
     return base64_signature;
 }
 
-bool ecdsa_verify(const KeyPair pubkey, const void *data, const int data_len, char *base64_signature) {
+bool ecdsa_verify(const char* base64_public_key, const void *data, const int data_len, char *base64_signature) {
     const char *digest = sha256_hash(data, data_len);
-    const EC_KEY *eckey = _KeyPair_get_EC_KEY(pubkey);
+
+    EC_KEY *eckey;
+    _base64_keys_get_EC_KEY(base64_public_key, NULL, &eckey);
     if (digest == NULL)
         return false;
 
@@ -44,7 +47,7 @@ bool ecdsa_verify(const KeyPair pubkey, const void *data, const int data_len, ch
 
     ECDSA_SIG *decoded_signature = d2i_ECDSA_SIG(NULL, &der_signature, signature_len);
 
-    int verify_status = ECDSA_do_verify(digest, SHA256_DIGEST_LENGTH, decoded_signature, eckey);
+    int verify_status = ECDSA_do_verify(digest, strlen(digest), decoded_signature, eckey);
     const int verify_success = 1;
 
     free(digest);

@@ -8,6 +8,7 @@
 #include "KeyPair.h"
 
 KeyPair _EVP_PKEY_get_KeyPair(const EVP_PKEY *pkey) {
+    int tmp_len = 0;
     KeyPair keys;
     keys.pemPrivateKey = NULL;
     keys.pemPublicKey = NULL;
@@ -16,38 +17,56 @@ KeyPair _EVP_PKEY_get_KeyPair(const EVP_PKEY *pkey) {
     if (!PEM_write_bio_PrivateKey(privBIO, pkey, NULL, NULL, 0, 0, NULL)) {
         _error(1, "Error writing private key data in PEM format");
     }
-    keys.pemPrivateKey = _BIO_read_chars(privBIO);
+    char *pem_private_key = _BIO_read_chars(privBIO);
     BIO_free_all(privBIO);
 
     BIO *pubBIO = BIO_new(BIO_s_mem());
     if (!PEM_write_bio_PUBKEY(pubBIO, pkey)) {
         _error(2, "Error writing public key data in PEM format");
     }
-    keys.pemPublicKey = _BIO_read_chars(pubBIO);
+    char *pem_public_key = _BIO_read_chars(pubBIO);
     BIO_free_all(pubBIO);
+
+    char *base64_public_key;
+    char *base64_private_key;
+
+    base64_encode(pem_private_key, strlen(pem_private_key), &tmp_len, &base64_private_key);
+    base64_encode(pem_public_key, strlen(pem_public_key), &tmp_len, &base64_public_key);
+
+    keys.pemPublicKey = base64_public_key;
+    keys.pemPrivateKey = base64_private_key;
+
+    free(pem_private_key);
+    free(pem_public_key);
 
     return keys;
 }
 
-EC_KEY *_KeyPair_get_EC_KEY(const KeyPair keys) {
-    EVP_PKEY *pkey = NULL;
-    EC_KEY *eckey = NULL;
 
-    BIO *pub_bio = BIO_new_mem_buf((void*)keys.pemPublicKey, strlen(keys.pemPublicKey));
+
+void _base64_keys_get_EC_KEY(const char *base64_public_key, const char *base64_private_key, EC_KEY **eckey) {
+    EVP_PKEY *pkey = NULL;
+
+    char *public_key;
+    int public_key_len;
+    base64_decode(base64_public_key, strlen(base64_public_key), &public_key_len, &public_key);
+
+    BIO *pub_bio = BIO_new_mem_buf((void*) public_key, public_key_len);
     PEM_read_bio_PUBKEY(pub_bio, &pkey, NULL, NULL);
 
-    if (keys.pemPrivateKey != NULL) {
-        BIO *priv_bio = BIO_new_mem_buf((void*)keys.pemPrivateKey, strlen(keys.pemPrivateKey));
+    if (base64_private_key != NULL) {
+        char *private_key;
+        int private_key_len;
+        base64_decode(base64_private_key, strlen(base64_private_key), &private_key_len, &private_key);
+        BIO *priv_bio = BIO_new_mem_buf((void*) private_key, private_key_len);
         PEM_read_bio_PrivateKey(priv_bio, &pkey, NULL, NULL);
         BIO_free_all(priv_bio);
     }
 
-    eckey = EVP_PKEY_get1_EC_KEY(pkey);
-    
+    *eckey = EVP_PKEY_get1_EC_KEY(pkey);
+
     BIO_free_all(pub_bio);
     EVP_PKEY_free(pkey);
-
-    return eckey;
 }
 
 KeyPair generate_key_pair(const Curve curve) {

@@ -85,22 +85,23 @@ int EC_KEY_private_derive_S(const EC_KEY *key, const BIGNUM *R, BIGNUM *S) {
 	return ret;
 }
 
-char *ecies_encrypt(KeyPair keys, const char *message) {
+char *ecies_encrypt(char *base64_public_key, const char *message) {
     char *cipher = NULL;
-    _ecies_encrypt(keys, message, strlen(message), &cipher);
+    _ecies_encrypt(base64_public_key, message, strlen(message), &cipher);
     return cipher;
 }
 
-char *ecies_decrypt(KeyPair keys, const char *encoded_cipher) {
+char *ecies_decrypt(const char *base64_public_key, char *base64_private_key, const char *encoded_cipher) {
     char *message = NULL;
     int message_len = 0;
-    _ecies_decrypt(keys, encoded_cipher, &message, &message_len);
+    _ecies_decrypt(base64_public_key, base64_private_key, encoded_cipher, &message, &message_len);
     return message;
 }
 
-void _ecies_encrypt(KeyPair keys, const char *message, const int message_len, char **encoded_cipher) {
+void _ecies_encrypt(char *base64_public_key, const char *message, const int message_len, char **encoded_cipher) {
     Cipher *cipher = cipher_new();
-    EC_KEY *key = _KeyPair_get_EC_KEY(keys);
+    EC_KEY *key;
+    _base64_keys_get_EC_KEY(base64_public_key, NULL, &key);
 
     BIGNUM *R = BN_new();
     BIGNUM *S = BN_new();
@@ -128,15 +129,16 @@ void _ecies_encrypt(KeyPair keys, const char *message, const int message_len, ch
     cipher_free(cipher);
 }
 
-void _ecies_decrypt(KeyPair keys, const char *encoded_cipher, char **message, int *message_len) {
+void _ecies_decrypt(const char *base64_public_key, char *base64_private_key, const char *encoded_cipher, char **message, int *message_len) {
     Cipher *cipher = cipher_decode(encoded_cipher);
 
-    unsigned char *pk;
-    int pk_len;
-    base64_decode(cipher->public_key, cipher->public_key_len, &pk_len, &pk);
+    unsigned char *pub_key;
+    int pub_key_len;
+    base64_decode(cipher->public_key, cipher->public_key_len, &pub_key_len, &pub_key);
 
-    EC_KEY *key = _KeyPair_get_EC_KEY(keys);
-    BIGNUM *R = BN_bin2bn(pk, pk_len, BN_new());
+    EC_KEY *key;
+    _base64_keys_get_EC_KEY(base64_public_key, base64_private_key, &key);
+    BIGNUM *R = BN_bin2bn(pub_key, pub_key_len, BN_new());
     BIGNUM *S = BN_new();
 
     if (EC_KEY_private_derive_S(key, R, S) != 0) {
