@@ -146,8 +146,6 @@ char *_get_group_name(Curve curve) {
         return "brainpoolP512r1";
     case brainpoolP512t1:
         return "brainpoolP512t1";
-    case SM2:
-        return "SM2";
     default:
         return NULL;
     }
