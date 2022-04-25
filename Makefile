@@ -219,9 +219,9 @@ linux-arm64: build-openssl-linux-arm64 build-linux-arm64
 
 build-linux-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/linux-arm64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$(@:build-%=%)/lib $(PRODUCTFOLDER)/$(@:build-%=%)/include/vc
-	$(AR) rcs -v $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libvc.a $^
-	@cp $(SSLLIB)/$(@:build-%=%)/lib/libcrypto.a $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libcrypto.a
-	@cp $(SSLLIB)/$(@:build-%=%)/lib/libssl.a $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libssl.a
+	$(CC) -shared -o $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libvc.so $^
+	@cp $(SSLLIB)/$(@:build-%=%)/lib/libcrypto.so $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libcrypto.so
+	@cp $(SSLLIB)/$(@:build-%=%)/lib/libssl.so $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libssl.so
 
 $(TMPFOLDER)/linux-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
@@ -237,9 +237,9 @@ linux-x86_64: build-openssl-linux-x86_64 build-linux-x86_64
 
 build-linux-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/linux-x86_64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$(@:build-%=%)/lib $(PRODUCTFOLDER)/$(@:build-%=%)/include/vc
-	$(AR) rcs -v $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libvc.a $^
-	@cp $(SSLLIB)/$(@:build-%=%)/lib64/libcrypto.a $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libcrypto.a
-	@cp $(SSLLIB)/$(@:build-%=%)/lib64/libssl.a $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libssl.a
+	$(CC) -shared -o $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libvc.so $^
+	@cp $(SSLLIB)/$(@:build-%=%)/lib64/libcrypto.so $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libcrypto.so
+	@cp $(SSLLIB)/$(@:build-%=%)/lib64/libssl.so $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libssl.so
 
 $(TMPFOLDER)/linux-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
