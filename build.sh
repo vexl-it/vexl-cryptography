@@ -114,20 +114,20 @@ build() {
             ;;
         IOS_SIMULATOR_X86_64)
             echo "[OPENSSL] Building for ios_sim@x86_64"
-            export CROSS_TOP="xcode-select --print-path/Platforms/iPhoneSimulator.platform/Developer"
-            export CROSS_SDK="iPhoneSimulator.sdk"
+            export CROSS_TOP=/Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer
+            export CROSS_SDK=iPhoneSimulator.sdk
             ./Configure iossimulator-xcrun "-arch x86_64" no-asm no-shared no-hw no-async --prefix="$outputPath"
             ;;
         IOS_SIMULATOR_ARM64)
             echo "[OPENSSL] Building for ios_sim@arm64"
-            export CROSS_TOP="xcode-select --print-path/Platforms/iPhoneSimulator.platform/Developer"
-            export CROSS_SDK="iPhoneSimulator.sdk"
+            export CROSS_TOP=/Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer
+            export CROSS_SDK=iPhoneSimulator.sdk
             ./Configure iossimulator-xcrun "-arch arm64" no-asm no-shared no-hw no-async --prefix="$outputPath"
             ;;
         IOS_ARM64)
             echo "[OPENSSL] Building for ios@arm64"
             export CC=clang;
-            export CROSS_TOP=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer
+            export CROSS_TOP=/Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer
             export CROSS_SDK=iPhoneOS.sdk
             export PATH="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin:$PATH"
             ./Configure ios64-cross no-shared no-dso no-hw no-engine --prefix="$outputPath"
