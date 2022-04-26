@@ -36,7 +36,8 @@ APPLE_ARCHITECTURES=darwin-x86_64 darwin-arm64 ios-simulator-x86_64 ios-simulato
 ANDROID_ARCHITECTURES=android-armv8 android-armv4 android-x86 android-x86_64
 DOCKER_LINUX_ARCHITECTURES=docker-linux-arm64 docker-linux-x86_64
 LINUX_ARCHITECTURES=linux-arm64 linux-x86_64
-ARCHITECTURES=$(APPLE_ARCHITECTURES) $(APPLE_ARCHITECTURES) $(DOCKER_LINUX_ARCHITECTURES)
+WINDOWS_ARCHITECTURES=windows-x86_64
+ARCHITECTURES=$(APPLE_ARCHITECTURES) $(APPLE_ARCHITECTURES) $(DOCKER_LINUX_ARCHITECTURES) $(WINDOWS_ARCHITECTURES)
 
 ARCHOFOLDERS=$(foreach ARCH,$(ARCHITECTURES),$(TMPFOLDER)/$(ARCH))
 CURRENTARCH=$(shell uname | tr A-Z a-z)-$(shell uname -m | tr A-Z a-z)
@@ -51,11 +52,14 @@ ANDROID_ARMv7_CROSS_CC=$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_6
 ANDROID_X86_64_CROSS_CC=$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64/bin/x86_64-linux-android32-clang
 ANDROID_X86_CROSS_CC=$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64/bin/i686-linux-android32-clang
 ANDROID_AR=$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64/bin/llvm-ar
+
+WINDOWS_CROSS_CC=x86_64-w64-mingw32-gcc
 # OpenSSL builds
 OPENSSL_APPLE_TARGETS=$(foreach ARCH, $(APPLE_ARCHITECTURES), build-openssl-$(ARCH))
 OPENSSL_ANDROID_TARGETS=$(foreach ARCH, $(ANDROID_ARCHITECTURES), build-openssl-$(ARCH))
 OPENSSL_LINUX_TARGETS=$(foreach ARCH, $(LINUX_ARCHITECTURES), build-openssl-$(ARCH))
-OPENSSLTARGETS=$(OPENSSL_APPLE_TARGETS) $(OPENSSL_ANDROID_TARGETS) $(OPENSSL_LINUX_TARGETS)
+OPENSSL_WINDOWS_TARGETS=$(foreach ARCH, $(WINDOWS_ARCHITECTURES), build-openssl-$(ARCH))
+OPENSSLTARGETS=$(OPENSSL_APPLE_TARGETS) $(OPENSSL_ANDROID_TARGETS) $(OPENSSL_LINUX_TARGETS) $(OPENSSL_WINDOWS_TARGETS)
 
 # Library files
 SRCFOLDER=src
@@ -81,7 +85,7 @@ DEPFILES=$(patsubst %.c,%.d,$(ALLCFILES))
 
 build-current: build-openssl-$(CURRENTARCH) $(CURRENTARCH) test
 
-all: apple android linux test
+all: apple android linux windows test
 
 $(OPENSSLTARGETS):
 	./build.sh --$(@:build-openssl-%=%)
@@ -108,6 +112,10 @@ android: $(OPENSSL_ANDROID_TARGETS) $(ANDROID_ARCHITECTURES)
 linux: $(DOCKER_LINUX_ARCHITECTURES)
 	@mkdir -p $(PRODUCTFOLDER)/linux
 	cd $(PRODUCTFOLDER) && zip -r linux/vexl_crypto_linux_frameworks.zip linux-arm64 linux-x86_64
+
+windows: $(WINDOWS_ARCHITECTURES)
+	@mkdir -p $(PRODUCTFOLDER)/windows
+	cd $(PRODUCTFOLDER) && zip -r windows/vexl_crypto_windows_frameworks.zip windows-x86_64
 
 darwin-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/darwin-x86_64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$@/lib $(PRODUCTFOLDER)/$@/include/vc
@@ -219,7 +227,11 @@ linux-arm64: build-openssl-linux-arm64 build-linux-arm64
 
 build-linux-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/linux-arm64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$(@:build-%=%)/lib $(PRODUCTFOLDER)/$(@:build-%=%)/include/vc
-	$(CC) -shared -Wl,--whole-archive $(SSLLIB)/$(@:build-%=%)/lib/libcrypto.a -Wl,--whole-archive $(SSLLIB)/$(@:build-%=%)/lib/libssl.a -o $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libvc.so -Wl,--no-whole-archive $^
+	$(CC) -shared \
+		-Wl,--whole-archive $(SSLLIB)/$(@:build-%=%)/lib/libcrypto.a \
+		-Wl,--whole-archive $(SSLLIB)/$(@:build-%=%)/lib/libssl.a \
+		-o $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libvc.so \
+		-Wl,--no-whole-archive $^
 
 $(TMPFOLDER)/linux-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
@@ -235,11 +247,37 @@ linux-x86_64: build-openssl-linux-x86_64 build-linux-x86_64
 
 build-linux-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/linux-x86_64/$(CFILE)))
 	@mkdir -p $(PRODUCTFOLDER)/$(@:build-%=%)/lib $(PRODUCTFOLDER)/$(@:build-%=%)/include/vc
-	$(CC) -shared -Wl,--whole-archive $(SSLLIB)/$(@:build-%=%)/lib64/libcrypto.a -Wl,--whole-archive $(SSLLIB)/$(@:build-%=%)/lib64/libssl.a -o $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libvc.so -Wl,--no-whole-archive $^
+	$(CC) -shared \
+		-Wl,--whole-archive $(SSLLIB)/$(@:build-%=%)/lib64/libcrypto.a \
+		-Wl,--whole-archive $(SSLLIB)/$(@:build-%=%)/lib64/libssl.a \
+		-o $(PRODUCTFOLDER)/$(@:build-%=%)/lib/libvc.so \
+		-Wl,--no-whole-archive $^
 
 $(TMPFOLDER)/linux-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
+
+docker-windows-x86_64:
+	docker build --tag windows-x86_64 - < ./docker/Dockerfile-windows-x86_64
+	docker run -v $(shell pwd):/root/vexl -v $(shell pwd)/../openssl:/root/openssl --rm --name windows-x86_64 --platform=linux/amd64 windows-x86_64
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$(@:docker-%=%)/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$(@:docker-%=%)/include/vc
+
+windows-x86_64: build-openssl-windows-x86_64 build-windows-x86_64
+
+build-windows-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/windows-x86_64/$(CFILE)))
+	$(eval ARCH := $(@:build-%=%))
+	@mkdir -p $(PRODUCTFOLDER)/$(ARCH)/lib $(PRODUCTFOLDER)/$(ARCH)/include/vc
+	x86_64-w64-mingw32-gcc -static-libgcc -shared -m64 \
+		$^ \
+		-o $(PRODUCTFOLDER)/$(ARCH)/lib/libvc.dll \
+		-L$(SSLLIB)/$(ARCH)/lib64 -lssl -lcrypto -lws2_32 -lcrypt32
+	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$(ARCH)/include/vc
+	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$(ARCH)/include/vc
+
+$(TMPFOLDER)/windows-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+	@mkdir -p $(dir $@)
+	$(WINDOWS_CROSS_CC) -I../openssl/lib/windows-x86_64/include -DBUILD_FOR_LIBRARY -fPIC -w -c -o $@ $<
 
 test: $(CURRENTARCH) test-$(CURRENTARCH)
 
