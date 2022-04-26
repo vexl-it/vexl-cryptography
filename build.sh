@@ -19,7 +19,9 @@ OUTPUT_ANDROID_X86_64="$PRODUCTFOLDER/android-x86_64"
 OUTPUT_LINUX_ARM64="$PRODUCTFOLDER/linux-arm64"
 OUTPUT_LINUX_X86_64="$PRODUCTFOLDER/linux-x86_64"
 
-TARGETS=(DARWIN_ARM64 DARWIN_X86_64, IOS_SIMULATOR_X86_64, IOS_SIMULATOR_ARM64, IOS_ARM64, ANDROID_ARMV8, ANDROID_ARMV4, ANDROID_X86, ANDROID_X86_64, LINUX_ARM64, LINUX_X86_64)
+OUTPUT_WINDOWS_X86_64="$PRODUCTFOLDER/windows-x86_64"
+
+TARGETS=(DARWIN_ARM64 DARWIN_X86_64, IOS_SIMULATOR_X86_64, IOS_SIMULATOR_ARM64, IOS_ARM64, ANDROID_ARMV8, ANDROID_ARMV4, ANDROID_X86, ANDROID_X86_64, LINUX_ARM64, LINUX_X86_64, WINDOWS_X86_64)
 TARGETSCOUNT=${#TARGETS[@]}
 CURRENTUSER="$(whoami)"
 
@@ -38,6 +40,7 @@ printHelp() {
     echo "    -ax86,  --android-x86          Creates openssl static library for android devices running on x86 CPU"
     echo "    -la,  --linux-arm64            Creates openssl static library for android devices running linux with 64-bit ARMv8 or ARM64 SoC"
     echo "    -lx,  --linux-x86_64           Creates openssl static library for android devices running on x86_64 CPU"
+    echo "    -wx,  --windows-x86_64         Creates openssl static library for android devices running on x86_64 CPU"
 }
 
 build() {
@@ -77,6 +80,9 @@ build() {
             ;;
         LINUX_X86_64)
             outputPath=$OUTPUT_LINUX_X86_64
+            ;;
+        WINDOWS_X86_64)
+            outputPath=$OUTPUT_WINDOWS_X86_64
             ;;
         *)
             echo "[OPENSSL] Did not match any target ($targetName)"
@@ -158,6 +164,10 @@ build() {
             echo "[OPENSSL] Building for linux@x86_64"
             ./config linux-x86_64 --prefix="$outputPath" no-shared
             ;;
+        WINDOWS_X86_64)
+            echo "[OPENSSL] Building for windows@x86_64"
+            ./Configure mingw64 --cross-compile-prefix=x86_64-w64-mingw32- --prefix="$outputPath" no-shared
+            ;;
         *)
             echo "[OPENSSL] Did not match any target ($targetName)"
             return
@@ -231,6 +241,10 @@ else
                 ;;
             -lx|--linux-x86_64 )
                 build LINUX_X86_64  $OUTPUT_LINUX_X86_64
+                shift
+                ;;
+            -wx|--windows-x86_64 )
+                build WINDOWS_X86_64  $OUTPUT_WINDOWS_X86_64
                 shift
                 ;;
             -h|--help )
