@@ -257,12 +257,6 @@ $(TMPFOLDER)/linux-x86_64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
-docker-windows-x86_64:
-	docker build --tag windows-x86_64 - < ./docker/Dockerfile-windows-x86_64
-	docker run -v $(shell pwd):/root/vexl -v $(shell pwd)/../openssl:/root/openssl --rm --name windows-x86_64 --platform=linux/amd64 windows-x86_64
-	@cd $(SRCFOLDER) && rsync -R ./**/*.h ../$(PRODUCTFOLDER)/$(@:docker-%=%)/include/vc
-	@cd $(SRCFOLDER) && rsync -R ./*.h ../$(PRODUCTFOLDER)/$(@:docker-%=%)/include/vc
-
 windows-x86_64: build-openssl-windows-x86_64 build-windows-x86_64
 
 build-windows-x86_64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/windows-x86_64/$(CFILE)))
