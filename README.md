@@ -12,11 +12,20 @@ This library includes implemention of following algorithms:
 ## Dependencies
 This project assumes, you use Mac with Apple silicon for building the library. Althought It should be possible to use the intel mac variant, you may run into compatibility issues when compiling for arm targets.
 
+### Dependencies for Apple targets
+Apple targets depend on latest version of xcode. You can download latest version of Xcode from the Mac AppStore.
+
 ### Dependencies for Android targets
-To be able to compile the android target for this library, please install android studio and the latest Native Developer Kit (NDK). The NDK provides cross-compilers for the android platform with various ABIs.
+To be able to compile the android target for this library, please install android studio and the latest Native Developer Kit (NDK). The NDK provides cross-compilers for the android platform with various ABIs. To install NDK in android studio, go to `Tools -> SDK Manager -> Android SDK -> SDK Tools`, check `NDK` and click apply. 
 
 ### Dependencies for Linux target
 Currently it is not possible to natively build any C code directly for linux operating system on Mac. To mitigate this limitation, you need to install docker. Our custom build script uses docker to spin arm and x86 containers, to build the library for the linux target.
+
+### Dependencies for Windows target
+To be able to compile the windows target, you have to install MinWG cross compiler. On apple silicon, you run the folliwng command
+```shell
+brew install mingw-w64
+```
 
 ## Building
 Vexl cryptography is built to support multiple architectures across wide spectrum of platforms.
@@ -63,6 +72,12 @@ The archive for all resulting architectures can be found in `./product/android/v
 make linux
 ```
 The archive for all resulting architectures can be found in `./product/linux/vexl_crypto_linux_frameworks.zip`
+
+### Building for Windows
+```shell
+make windows
+```
+The archive for all resulting architectures can be found in `./product/windows/vexl_crypto_windows_frameworks.zip`
 
 ### Cleaning the build
 Sometimes it is useful to run the `make` command from scratch. For cleaning all the build files run
