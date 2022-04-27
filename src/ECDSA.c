@@ -31,7 +31,7 @@ char *ecdsa_sign(const char* base64_public_key, const char* base64_private_key, 
     return base64_signature;
 }
 
-bool ecdsa_verify(const char* base64_public_key, const void *data, const int data_len, char *base64_signature) {
+bool ecdsa_verify(const char* base64_public_key, const void *data, const int data_len, const char *base64_signature) {
     const char *digest = sha256_hash(data, data_len);
 
     EC_KEY *eckey;

@@ -85,20 +85,20 @@ int EC_KEY_private_derive_S(const EC_KEY *key, const BIGNUM *R, BIGNUM *S) {
 	return ret;
 }
 
-char *ecies_encrypt(char *base64_public_key, const char *message) {
+char *ecies_encrypt(const char *base64_public_key, const char *message) {
     char *cipher = NULL;
     _ecies_encrypt(base64_public_key, message, strlen(message), &cipher);
     return cipher;
 }
 
-char *ecies_decrypt(const char *base64_public_key, char *base64_private_key, const char *encoded_cipher) {
+char *ecies_decrypt(const char *base64_public_key, const char *base64_private_key, const char *encoded_cipher) {
     char *message = NULL;
     int message_len = 0;
     _ecies_decrypt(base64_public_key, base64_private_key, encoded_cipher, &message, &message_len);
     return message;
 }
 
-void _ecies_encrypt(char *base64_public_key, const char *message, const int message_len, char **encoded_cipher) {
+void _ecies_encrypt(const char *base64_public_key, const char *message, const int message_len, char **encoded_cipher) {
     Cipher *cipher = cipher_new();
     EC_KEY *key;
     _base64_keys_get_EC_KEY(base64_public_key, NULL, &key);
@@ -129,7 +129,7 @@ void _ecies_encrypt(char *base64_public_key, const char *message, const int mess
     cipher_free(cipher);
 }
 
-void _ecies_decrypt(const char *base64_public_key, char *base64_private_key, const char *encoded_cipher, char **message, int *message_len) {
+void _ecies_decrypt(const char *base64_public_key, const char *base64_private_key, const char *encoded_cipher, char **message, int *message_len) {
     Cipher *cipher = cipher_decode(encoded_cipher);
 
     unsigned char *pub_key;
