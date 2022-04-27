@@ -43,6 +43,7 @@ VC currently supports following targets:
  - android-armv4        (android with 32-bit arm processors, compatible with armv7 processors)
  - linux-x86_64         (linux running on a 64-bit x86 cpu)
  - linux-aarch64        (linux running on a 64-bit arm cpu)
+ - windows-x86_64       (good ol' classic windows)
 ```
 
 To build the vexl crypto library for all targets, just run

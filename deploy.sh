@@ -59,12 +59,12 @@ VEXL_WINDOWS_FRAMEWORK="vexl_crypto_windows_frameworks.zip"
 PACKAGE_IOS_REGISTRY_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/vexl_crypto_ios/v$NEW_VERSION/"
 PACKAGE_ANDROID_REGISTRY_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/vexl_crypto_android/v$NEW_VERSION/"
 PACKAGE_LINUX_REGISTRY_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/vexl_crypto_linux/v$NEW_VERSION/"
-PACKAGE_WINDOWS_REGISTRY_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/vexl_crypto_linux/v$NEW_VERSION/"
+PACKAGE_WINDOWS_REGISTRY_URL="$CI_API_V4_URL/projects/$CI_PROJECT_ID/packages/generic/vexl_crypto_windows/v$NEW_VERSION/"
 
 curl --header "JOB-TOKEN: $CI_JOB_TOKEN" -T ./product/apple/$VEXL_IOS_FRAMEWORK $PACKAGE_IOS_REGISTRY_URL
 curl --header "JOB-TOKEN: $CI_JOB_TOKEN" -T ./product/android/$VEXL_ANDROID_FRAMEWORK $PACKAGE_ANDROID_REGISTRY_URL
 curl --header "JOB-TOKEN: $CI_JOB_TOKEN" -T ./product/linux/$VEXL_LINUX_FRAMEWORK $PACKAGE_LINUX_REGISTRY_URL
-curl --header "JOB-TOKEN: $CI_JOB_TOKEN" -T ./product/linux/$VEXL_WINDOWS_FRAMEWORK $PACKAGE_WINDOWS_REGISTRY_URL
+curl --header "JOB-TOKEN: $CI_JOB_TOKEN" -T ./product/windows/$VEXL_WINDOWS_FRAMEWORK $PACKAGE_WINDOWS_REGISTRY_URL
 
 release-cli create \
     --name "Vexl crypto library v$NEW_VERSION" \
