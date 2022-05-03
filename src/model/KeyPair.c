@@ -109,6 +109,6 @@ KeyPair generate_key_pair(const Curve curve) {
 void KeyPair_free(KeyPair keyPair) {
     if (keyPair.pemPrivateKey != NULL)
         free(keyPair.pemPrivateKey);
-    if (keyPair.pemPublicKey)
+    if (keyPair.pemPublicKey != NULL)
         free(keyPair.pemPublicKey);
 }
