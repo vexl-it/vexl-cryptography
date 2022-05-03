@@ -69,6 +69,14 @@ void _base64_keys_get_EC_KEY(const char *base64_public_key, const char *base64_p
     EVP_PKEY_free(pkey);
 }
 
+char *generate_key_public_key(const int curve) {
+    KeyPair keys = generate_key_pair((Curve) curve);
+    char *pub_key = keys.pemPublicKey;
+    keys.pemPublicKey = NULL;
+    KeyPair_free(keys);
+    return pub_key;
+}
+
 KeyPair generate_key_pair(const Curve curve) {
     int eccgrp = OBJ_txt2nid(_get_group_name(curve));
     EC_KEY *myecc = EC_KEY_new_by_curve_name(eccgrp);
@@ -98,7 +106,9 @@ KeyPair generate_key_pair(const Curve curve) {
     return keys;
 }
 
-void KeyPair_free(KeyPair KeyPair) {
-    free(KeyPair.pemPrivateKey);
-    free(KeyPair.pemPublicKey);
+void KeyPair_free(KeyPair keyPair) {
+    if (keyPair.pemPrivateKey != NULL)
+        free(keyPair.pemPrivateKey);
+    if (keyPair.pemPublicKey != NULL)
+        free(keyPair.pemPublicKey);
 }
