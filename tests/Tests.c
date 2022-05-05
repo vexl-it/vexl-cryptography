@@ -52,6 +52,27 @@ void test_ecies(Curve curve) {
     free(message);
 }
 
+void test_incorrect_keys_ecies(Curve curve) {
+    log_message("Testing ECIES asymetric encryption");
+
+    KeyPair keys = generate_key_pair(curve);
+    KeyPair keys2 = generate_key_pair(curve);
+    KeyPair pubkey = keys;
+    pubkey.pemPrivateKey = NULL;
+
+    char *cipher = ecies_encrypt(pubkey.pemPublicKey, test_message);
+    assert_not_null(cipher, "Encrypted test message");
+
+    char *message = ecies_decrypt(keys2.pemPublicKey, keys2.pemPrivateKey, cipher);
+    assert_not_null(message, "Decrypted test message");
+
+    assert_equals(message, test_message, "Encrypted and decrypted data match");
+
+    KeyPair_free(keys);
+    free(cipher);
+    free(message);
+}
+
 void test_ecdsa(Curve curve) {
     log_message("Testing ECDSA digital signature");
 
