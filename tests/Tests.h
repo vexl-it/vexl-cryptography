@@ -17,6 +17,7 @@ void test_curve_performance(Curve curve);
 void test_aes();
 void test_hmac();
 void test_ecies(Curve curve);
+void test_incorrect_keys_ecies(Curve curve);
 void test_ecdsa(Curve curve);
 void test_sha();
 
