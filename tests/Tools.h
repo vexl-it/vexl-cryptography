@@ -29,8 +29,10 @@ void log_progress_end();
 void log_success(const char *message, ...);
 void log_error(const char *message, ...);
 
+bool assert_not_equals(const char *str1, const char *str2, const char *message);
 bool assert_equals(const char *str1, const char *str2, const char *message);
 bool assert_true(int val, const char *message);
 bool assert_not_null(const void *ptr, const char *message);
+bool assert_null(const void *ptr, const char *message);
 
 #endif
