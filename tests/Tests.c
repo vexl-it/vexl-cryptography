@@ -53,7 +53,7 @@ void test_ecies(Curve curve) {
 }
 
 void test_incorrect_keys_ecies(Curve curve) {
-    log_message("Testing ECIES asymetric encryption");
+    log_message("Testing ECIES encryption with incorrect keys");
 
     KeyPair keys = generate_key_pair(curve);
     KeyPair keys2 = generate_key_pair(curve);
@@ -64,9 +64,9 @@ void test_incorrect_keys_ecies(Curve curve) {
     assert_not_null(cipher, "Encrypted test message");
 
     char *message = ecies_decrypt(keys2.pemPublicKey, keys2.pemPrivateKey, cipher);
-    assert_not_null(message, "Decrypted test message");
+    assert_null(message, "Did not decrypt test message successfully ");
 
-    assert_equals(message, test_message, "Encrypted and decrypted data match");
+    assert_not_equals(message, test_message, "Encrypted and decrypted data do not match");
 
     KeyPair_free(keys);
     free(cipher);
