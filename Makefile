@@ -175,7 +175,7 @@ ios-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/ios-arm64
 
 $(TMPFOLDER)/ios-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
-	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot $(IOS_SDK) -c -o $@ $< -target arm64-apple-ios
+	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -fembed-bitcode -isysroot $(IOS_SDK) -c -o $@ $< -target arm64-apple-ios
 
 android-armv8: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-armv8/$(CFILE)))
 	@mkdir -p $(ANDROIDFOLDER)/arm64-v8a
