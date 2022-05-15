@@ -47,48 +47,7 @@ build() {
     targetName=$1
     sslFolder="$TMPFOLDER/$1"
 
-    case $1 in
-        DARWIN_ARM64)
-            outputPath=$OUTPUT_DARWIN_ARM64
-            ;;
-        DARWIN_X86_64)
-            outputPath=$OUTPUT_DARWIN_X86_64
-            ;;
-        IOS_SIMULATOR_X86_64)
-            outputPath=$OUTPUT_IOS_SIMULATOR_X86_64
-            ;;
-        IOS_SIMULATOR_ARM64)
-            outputPath=$OUTPUT_IOS_SIMULATOR_ARM64
-            ;;
-        IOS_ARM64)
-            outputPath=$OUTPUT_IOS_ARM64
-            ;;
-        ANDROID_ARMV8)
-            outputPath=$OUTPUT_ANDROID_ARMV8
-            ;;
-        ANDROID_ARMV7)
-            outputPath=$OUTPUT_ANDROID_ARMV7
-            ;;
-        ANDROID_X86)
-            outputPath=$OUTPUT_ANDROID_X86
-            ;;
-        ANDROID_X86_64)
-            outputPath=$OUTPUT_ANDROID_X86_64
-            ;;
-        LINUX_ARM64)
-            outputPath=$OUTPUT_LINUX_ARM64
-            ;;
-        LINUX_X86_64)
-            outputPath=$OUTPUT_LINUX_X86_64
-            ;;
-        WINDOWS_X86_64)
-            outputPath=$OUTPUT_WINDOWS_X86_64
-            ;;
-        *)
-            echo "[OPENSSL] Did not match any target ($targetName)"
-            return
-            ;;
-    esac
+    outputPath=$2
 
     if [ -d $outputPath ]; then
         echo "[OPENSSL] target $targetName already exists. Skipping."
@@ -114,23 +73,22 @@ build() {
             ;;
         IOS_SIMULATOR_X86_64)
             echo "[OPENSSL] Building for ios_sim@x86_64"
-            export CROSS_TOP="xcode-select --print-path/Platforms/iPhoneSimulator.platform/Developer"
-            export CROSS_SDK="iPhoneSimulator.sdk"
-            ./Configure iossimulator-xcrun "-arch x86_64" no-asm no-shared no-hw no-async --prefix="$outputPath"
+            export CROSS_TOP=/Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer
+            export CROSS_SDK=iPhoneSimulator.sdk
+            ./Configure iossimulator-xcrun "-arch x86_64 -mios-simulator-version-min=14.0" no-asm no-shared no-hw no-async --prefix="$outputPath" "-isysroot /Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.0.sdk"
             ;;
         IOS_SIMULATOR_ARM64)
             echo "[OPENSSL] Building for ios_sim@arm64"
-            export CROSS_TOP="xcode-select --print-path/Platforms/iPhoneSimulator.platform/Developer"
-            export CROSS_SDK="iPhoneSimulator.sdk"
-            ./Configure iossimulator-xcrun "-arch arm64" no-asm no-shared no-hw no-async --prefix="$outputPath"
+            export CROSS_TOP=/Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer
+            export CROSS_SDK=iPhoneSimulator.sdk
+            ./Configure iossimulator-xcrun "-arch arm64 -mios-simulator-version-min=14.0" no-asm no-shared no-hw no-async --prefix="$outputPath" "-isysroot /Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.0.sdk"
             ;;
         IOS_ARM64)
             echo "[OPENSSL] Building for ios@arm64"
             export CC=clang;
-            export CROSS_TOP=/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer
+            export CROSS_TOP=/Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer
             export CROSS_SDK=iPhoneOS.sdk
-            export PATH="/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin:$PATH"
-            ./Configure ios64-cross no-shared no-dso no-hw no-engine --prefix="$outputPath"
+            ./Configure ios64-cross "-arch arm64 -fembed-bitcode -miphoneos-version-min=14.0" no-shared no-dso no-hw no-engine --prefix="$outputPath" "-isysroot /Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk"
             ;;
         ANDROID_ARMV8)
             echo "[OPENSSL] Building for android@arm64"

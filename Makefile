@@ -43,8 +43,8 @@ ARCHOFOLDERS=$(foreach ARCH,$(ARCHITECTURES),$(TMPFOLDER)/$(ARCH))
 CURRENTARCH=$(shell uname | tr A-Z a-z)-$(shell uname -m | tr A-Z a-z)
 
 MACOS_SDK=$(shell xcrun --sdk macosx --show-sdk-path)
-IOS_SIM_SDK=$(shell xcrun --sdk iphonesimulator --show-sdk-path)
-IOS_SDK=$(shell xcrun --sdk iphoneos --show-sdk-path)
+IOS_SIM_SDK=/Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.0.sdk
+IOS_SDK=/Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk
 
 ANDROID_NDK_ROOT=~/Library/Android/sdk/ndk/24.0.8215888
 ANDROID_ARM64_CROSS_CC=$(ANDROID_NDK_ROOT)/toolchains/llvm/prebuilt/darwin-x86_64/bin/aarch64-linux-android32-clang
@@ -175,7 +175,7 @@ ios-arm64: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/ios-arm64
 
 $(TMPFOLDER)/ios-arm64/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
-	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -isysroot $(IOS_SDK) -c -o $@ $< -target arm64-apple-ios
+	$(ARM) $(CC) -I$(SSLINCLUDE) $(LCFLAGS) -fembed-bitcode -isysroot $(IOS_SDK) -c -o $@ $< -target arm64-apple-ios
 
 android-armv8: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-armv8/$(CFILE)))
 	@mkdir -p $(ANDROIDFOLDER)/arm64-v8a
