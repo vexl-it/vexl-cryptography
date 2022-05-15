@@ -12,7 +12,7 @@ OUTPUT_IOS_SIMULATOR_ARM64="$PRODUCTFOLDER/ios-simulator-arm64"
 OUTPUT_IOS_ARM64="$PRODUCTFOLDER/ios-arm64"
 
 OUTPUT_ANDROID_ARMV8="$PRODUCTFOLDER/android-armv8"
-OUTPUT_ANDROID_ARMV4="$PRODUCTFOLDER/android-armv4"
+OUTPUT_ANDROID_ARMV7="$PRODUCTFOLDER/android-armv7"
 OUTPUT_ANDROID_X86="$PRODUCTFOLDER/android-x86"
 OUTPUT_ANDROID_X86_64="$PRODUCTFOLDER/android-x86_64"
 
@@ -21,7 +21,7 @@ OUTPUT_LINUX_X86_64="$PRODUCTFOLDER/linux-x86_64"
 
 OUTPUT_WINDOWS_X86_64="$PRODUCTFOLDER/windows-x86_64"
 
-TARGETS=(DARWIN_ARM64 DARWIN_X86_64, IOS_SIMULATOR_X86_64, IOS_SIMULATOR_ARM64, IOS_ARM64, ANDROID_ARMV8, ANDROID_ARMV4, ANDROID_X86, ANDROID_X86_64, LINUX_ARM64, LINUX_X86_64, WINDOWS_X86_64)
+TARGETS=(DARWIN_ARM64 DARWIN_X86_64, IOS_SIMULATOR_X86_64, IOS_SIMULATOR_ARM64, IOS_ARM64, ANDROID_ARMV8, ANDROID_ARMV7, ANDROID_X86, ANDROID_X86_64, LINUX_ARM64, LINUX_X86_64, WINDOWS_X86_64)
 TARGETSCOUNT=${#TARGETS[@]}
 CURRENTUSER="$(whoami)"
 
@@ -34,7 +34,7 @@ printHelp() {
     echo "    -isa, --ios-simulator-arm64    Creates arm openssl static library for iOS simulator running on Apple silicon SoC"
     echo "    -isx, --ios-simulator-x86_64   Creates x86_64 openssl static library for iOS simulator running on Intel CPU"
     echo "    -ia,  --ios-arm64              Creates arm openssl static library for iOS"
-    echo "    -aav7,  --android-armv7        Creates openssl static library for android devices running linux with 32-bit ARMv4 SoC"
+    echo "    -aav7,  --android-armv7        Creates openssl static library for android devices running linux with 32-bit ARMv7 SoC"
     echo "    -aav8,  --android-armv8        Creates openssl static library for android devices running linux with 64-bit ARMv8 or ARM64 SoC"
     echo "    -ax64,  --android-x86_64       Creates openssl static library for android devices running on x86_64 CPU"
     echo "    -ax86,  --android-x86          Creates openssl static library for android devices running on x86 CPU"
@@ -93,24 +93,25 @@ build() {
         ANDROID_ARMV8)
             echo "[OPENSSL] Building for android@arm64"
             export ANDROID_NDK_ROOT="/Users/$CURRENTUSER/Library/Android/sdk/ndk/24.0.8215888"
-            export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
+            export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
             ./Configure android-arm64 --prefix="$outputPath" no-shared
             ;;
-        ANDROID_ARMV4)
+        ANDROID_ARMV7)
             export ANDROID_NDK_ROOT="/Users/$CURRENTUSER/Library/Android/sdk/ndk/24.0.8215888"
-            export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
-            echo "[OPENSSL] Building for android@armv4"
-            ./Configure android-arm --prefix="$outputPath" no-shared
+            export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
+            echo "[OPENSSL] Building for android@armv7"
+            ./Configure android-armeabi --prefix="$outputPath" no-shared
+            sed -i -e 's/CC=$(CROSS_COMPILE)32-clang/CC=$(CROSS_COMPILE)armv7a-linux-androideabi32-clang/g' ./Makefile
             ;;
         ANDROID_X86_64)
             export ANDROID_NDK_ROOT="/Users/$CURRENTUSER/Library/Android/sdk/ndk/24.0.8215888"
-            export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
+            export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
             echo "[OPENSSL] Building for android@x86_64"
             ./Configure android-x86_64 --prefix="$outputPath" no-shared
             ;;
         ANDROID_X86)
             export ANDROID_NDK_ROOT="/Users/$CURRENTUSER/Library/Android/sdk/ndk/24.0.8215888"
-            export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
+            export PATH=$ANDROID_NDK_ROOT/toolchains/llvm/prebuilt/darwin-x86_64/bin:$PATH
             echo "[OPENSSL] Building for android@x86"
             ./Configure android-x86 --prefix="$outputPath" no-shared
             ;;
@@ -177,8 +178,8 @@ else
                 build IOS_ARM64  $OUTPUT_IOS_ARM64
                 shift
                 ;;
-            -aav4|--android-armv4 )
-                build ANDROID_ARMV4  $OUTPUT_ANDROID_ARMV4
+            -aav7|--android-armv7 )
+                build ANDROID_ARMV7  $OUTPUT_ANDROID_ARMV7
                 shift
                 ;;
             -aav8|--android-armv8 )

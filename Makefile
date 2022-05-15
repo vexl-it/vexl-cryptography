@@ -33,7 +33,7 @@ LCFLAGS= $(CFLAGS) -DBUILD_FOR_LIBRARY
 
 # ARCH variables
 APPLE_ARCHITECTURES=darwin-x86_64 darwin-arm64 ios-simulator-x86_64 ios-simulator-arm64 ios-arm64
-ANDROID_ARCHITECTURES=android-armv8 android-armv4 android-x86 android-x86_64
+ANDROID_ARCHITECTURES=android-armv8 android-armv7 android-x86 android-x86_64
 DOCKER_LINUX_ARCHITECTURES=docker-linux-arm64 docker-linux-x86_64
 LINUX_ARCHITECTURES=linux-arm64 linux-x86_64
 WINDOWS_ARCHITECTURES=windows-x86_64
@@ -187,13 +187,13 @@ $(TMPFOLDER)/android-armv8/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(X86) $(ANDROID_ARM64_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
-android-armv4: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-armv4/$(CFILE)))
+android-armv7: $(foreach CFILE, $(CFILES), $(patsubst %.c,%.o,$(TMPFOLDER)/android-armv7/$(CFILE)))
 	@mkdir -p $(ANDROIDFOLDER)/armeabi-v7a
 	$(X86) $(ANDROID_AR) rcs -v $(ANDROIDFOLDER)/armeabi-v7a/libvc.a $^
 	@cp $(SSLLIB)/$@/lib/libcrypto.a $(ANDROIDFOLDER)/armeabi-v7a/libcrypto.a
 	@cp $(SSLLIB)/$@/lib/libssl.a $(ANDROIDFOLDER)/armeabi-v7a/libssl.a
 
-$(TMPFOLDER)/android-armv4/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
+$(TMPFOLDER)/android-armv7/$(SRCFOLDER)/%.o: $(SRCFOLDER)/%.c
 	@mkdir -p $(dir $@)
 	$(X86) $(ANDROID_ARMv7_CROSS_CC) -I$(SSLINCLUDE) $(LCFLAGS) -c -o $@ $<
 
