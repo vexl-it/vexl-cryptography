@@ -20,6 +20,27 @@ void test_aes() {
     free(message);
 }
 
+void test_aes_long_string() {
+    log_message("Testing AES symetric encryption with long string");
+
+    int counts = 1000;
+
+    int test_message_len = strlen(test_message);
+    char long_message[counts*test_message_len];
+    for (int i = 0; i < counts; ++i) {
+        memcpy(long_message+(i*test_message_len), test_message, test_message_len);
+    }
+
+    char *cipher = aes_encrypt(password, long_message);
+    assert_not_null(cipher, "Encrypted message");
+
+    char *message = aes_decrypt(password, cipher);
+    assert_equals(message, long_message, "Decrypted content match");
+
+    free(cipher);
+    free(message);
+}
+
 void test_hmac() {
     log_message("Testing hmac");
 
