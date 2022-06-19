@@ -23,4 +23,5 @@ void _error(int code, char *message, ...) {
     va_start(argptr, message);
     vfprintf(stderr, message, argptr);
     va_end(argptr);
+    printf("\n");
 }

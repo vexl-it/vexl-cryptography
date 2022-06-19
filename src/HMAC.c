@@ -24,7 +24,7 @@ void _hmac_digest(const char *password, const int password_len, const char *mess
     unsigned char tmp_mac[message_len];
     int tmp_mac_len;
 
-    PKCS5_PBKDF2_HMAC(password, password_len, SALT, sizeof(SALT), PBKDF2ITER, md, ke_len+km_len, ke_km);
+    PKCS5_PBKDF2_HMAC(password, password_len, SALT, SALT_LEN, PBKDF2ITER, md, ke_len+km_len, ke_km);
     HMAC(md, ke_km + ke_len, km_len, message, message_len, tmp_mac, &tmp_mac_len);
 
     EVP_CIPHER_free(evp_cipher);
@@ -48,7 +48,7 @@ bool _hmac_verify(const char *password, const int password_len, const char *mess
     memset(dv_out, 0, EVP_MAX_MD_SIZE);
     unsigned int dv_len;
 
-    PKCS5_PBKDF2_HMAC((const char *) password, password_len, SALT, sizeof(SALT), PBKDF2ITER, md, ke_len + km_len, ke_km);
+    PKCS5_PBKDF2_HMAC((const char *) password, password_len, SALT, SALT_LEN, PBKDF2ITER, md, ke_len + km_len, ke_km);
 
     HMAC(md, ke_km + ke_len, km_len, message, message_len, dv_out, &dv_len);
 
