@@ -44,17 +44,21 @@ void _aes_encrypt(const char *password, const int password_len, const char *mess
     EVP_EncryptInit_ex(ectx, evp_cipher, NULL, ke_km, ke_km + EVP_CIPHER_key_length(evp_cipher));
 
     do {
-        int readlen = (m_offset + buff_size > m_size) ? m_size - m_offset : buff_size;
-        readlen = (readlen < 0) ? 0 : readlen;
+        int read_len = (m_offset + buff_size > m_size) ? m_size - m_offset : buff_size;
+        read_len = (read_len < 0) ? 0 : read_len;
 
-        memcpy(m_buffer, message+m_offset, readlen*sizeof(char));
+        if (read_len < buff_size) {
+            memset(m_buffer, 0, buff_size);
+        }
+
+        memcpy(m_buffer, message+m_offset, read_len*sizeof(char));
 
         EVP_EncryptUpdate(ectx, o_buffer, &o_len, m_buffer, buff_size);
 
         cipher_str = (char *)realloc(cipher_str, cipher_str_len + o_len);
         memcpy(cipher_str+cipher_str_len, o_buffer, o_len*sizeof(char));
         cipher_str_len += o_len;
-        m_offset += readlen;
+        m_offset += read_len;
     } while (m_offset < m_size);
 
     memset(o_buffer, 0, buff_size);
