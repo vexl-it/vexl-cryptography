@@ -25,7 +25,7 @@ void _aes_encrypt(const char *password, const int password_len, const char *mess
     size_t km_len = EVP_MD_block_size(md);
     unsigned char ke_km[ke_len+km_len];
 
-    PKCS5_PBKDF2_HMAC(password, password_len, SALT, sizeof(SALT), PBKDF2ITER, md, ke_len+km_len, ke_km);
+    PKCS5_PBKDF2_HMAC(password, password_len, SALT, SALT_LEN, PBKDF2ITER, md, ke_len+km_len, ke_km);
 
     EVP_CIPHER_CTX *ectx = EVP_CIPHER_CTX_new();
     *cipher_len = 0;
@@ -89,7 +89,7 @@ void _aes_decrypt(const char *password, const int password_len, const char *base
     size_t dc_len = 0;
     int outl = 0;
 
-    PKCS5_PBKDF2_HMAC(password, password_len, SALT, sizeof(SALT), PBKDF2ITER, md, ke_len + km_len, ke_km);
+    PKCS5_PBKDF2_HMAC(password, password_len, SALT, SALT_LEN, PBKDF2ITER, md, ke_len + km_len, ke_km);
 
     EVP_CIPHER_CTX *ectx = EVP_CIPHER_CTX_new();
     EVP_DecryptInit_ex(ectx, evp_cipher, NULL, ke_km, ke_km + EVP_CIPHER_key_length(evp_cipher));
