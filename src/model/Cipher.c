@@ -89,11 +89,13 @@ char *cipher_encode(Cipher *cipher) {
 
 void _get_part_size(const char *digest, const int offset, int *size_len, int *base_len) {
     *size_len = 0;
+    *base_len = 0;
     while (digest[offset + *size_len] != 'A')
         *size_len += 1;
 
-    char num_char[*size_len];
+    char num_char[*size_len+1];
     memcpy(num_char, digest + offset, *size_len*sizeof(char));
+    num_char[*size_len] = 0;
     *base_len = atoi(num_char);
 }
 
