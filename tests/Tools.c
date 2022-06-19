@@ -114,7 +114,24 @@ void log_error(const char *message, ...) {
 
 bool assert_equals(const char *str1, const char *str2, const char *message) {
     if (strcmp(str1, str2) != 0) {
-        log_error("Assertion error: Thesee two value do not equal\n\tstr1: %s\n\tstr2: %s", str1, str2);
+        log_error("Assertion error: These two values do not equal\n\tstr1: %s\n\tstr2: %s", str1, str2);
+        return false;
+    }
+    log_success(message);
+    return true;
+}
+
+bool assert_not_equals(const char *str1, const char *str2, const char *message) {
+    if (str1 == NULL || str2 == NULL) {
+        if (str1 == str2) {
+            log_error("Assertion error: These two values equals\n\tstr1: %s\n\tstr2: %s", str1, str2);
+            return false;
+        }
+        log_success(message);
+        return true;
+    }
+    if (strcmp(str1, str2) == 0) {
+        log_error("Assertion error: These two values equals\n\tstr1: %s\n\tstr2: %s", str1, str2);
         return false;
     }
     log_success(message);
@@ -133,6 +150,15 @@ bool assert_true(int val, const char *message) {
 bool assert_not_null(const void *ptr, const char *message) {
     if (ptr == NULL) {
         log_error("Assertion error: Pointer is NULL");
+        return false;
+    }
+    log_success(message);
+    return true;
+}
+
+bool assert_null(const void *ptr, const char *message) {
+    if (ptr != NULL) {
+        log_error("Assertion error: Pointer is not NULL");
         return false;
     }
     log_success(message);
