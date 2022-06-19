@@ -35,6 +35,7 @@ int main(int argc, char **argv) {
     test_aes_long_string();
     test_hmac();
     test_ecies(curve);
+    test_incorrect_keys_ecies(curve);
     test_ecdsa(curve);
 
 

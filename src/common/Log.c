@@ -18,7 +18,7 @@ void _log(char *message, ...) {
 }
 
 void _error(int code, char *message, ...) {
-    printf("\n");
+    printf("[VEXL LIBRARY] error: \n");
     va_list argptr;
     va_start(argptr, message);
     vfprintf(stderr, message, argptr);
