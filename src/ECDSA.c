@@ -31,7 +31,7 @@ char *ecdsa_sign(const char* base64_public_key, const char* base64_private_key, 
     return base64_signature;
 }
 
-bool ecdsa_verify(const char* base64_public_key, const void *data, const int data_len, const char *base64_signature) {
+bool ecdsa_verify(const char* base64_public_key, const char *data, const int data_len, const char *base64_signature) {
     const char *digest = sha256_hash(data, data_len);
 
     EC_KEY *eckey;
@@ -46,6 +46,9 @@ bool ecdsa_verify(const char* base64_public_key, const void *data, const int dat
     base64_decode(base64_signature, base64_signature_len, &tmp, &der_signature);
 
     ECDSA_SIG *decoded_signature = d2i_ECDSA_SIG(NULL, &der_signature, signature_len);
+
+    if (decoded_signature == NULL)
+        return false;
 
     int verify_status = ECDSA_do_verify(digest, strlen(digest), decoded_signature, eckey);
     const int verify_success = 1;
