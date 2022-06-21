@@ -16,7 +16,7 @@ bool hmac_verify(const char *password, const char *message, const char *digest) 
 }
 
 void _hmac_digest(const char *password, const int password_len, const char *message, const int message_len, char **mac, int *mac_len) {
-    const EVP_MD *md = EVP_sha1();
+    const EVP_MD *md = EVP_sha256();
     const EVP_CIPHER *evp_cipher = EVP_aes_256_gcm();
     size_t ke_len = EVP_CIPHER_key_length(evp_cipher) + EVP_CIPHER_iv_length(evp_cipher);
     size_t km_len = EVP_MD_block_size(md);
@@ -38,7 +38,7 @@ bool _hmac_verify(const char *password, const int password_len, const char *mess
     int mac_len = 0;
     base64_decode(base64_mac, base64_mac_len, &mac_len, &mac);
 
-    const EVP_MD *md = EVP_sha1();
+    const EVP_MD *md = EVP_sha256();
     const EVP_CIPHER *evp_cipher = EVP_aes_256_gcm();
     size_t ke_len = EVP_CIPHER_key_length(evp_cipher) + EVP_CIPHER_iv_length(evp_cipher);
     size_t km_len = EVP_MD_block_size(md);
