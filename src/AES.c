@@ -76,6 +76,12 @@ void _aes_encrypt(const char *password, const int password_len, const char *mess
 }
 
 void _aes_decrypt(const char *password, const int password_len, const char *base64_cipher, const int base64_cipher_len, char **message, int *message_len) {
+    if (strlen(base64_cipher) == 0) {
+        *message = NULL;
+        *message_len = 0;
+        return;
+    }
+
     char *cipher;
     int cipher_len;
     base64_decode(base64_cipher, base64_cipher_len, &cipher_len, &cipher);
