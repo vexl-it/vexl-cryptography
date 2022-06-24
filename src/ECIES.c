@@ -130,6 +130,12 @@ void _ecies_encrypt(const char *base64_public_key, const char *message, const in
 }
 
 void _ecies_decrypt(const char *base64_public_key, const char *base64_private_key, const char *encoded_cipher, char **message, int *message_len) {
+    if (strlen(encoded_cipher) == 0) {
+        *message = NULL;
+        *message_len = 0;
+        return;
+    }
+
     Cipher *cipher = cipher_decode(encoded_cipher);
 
     unsigned char *pub_key;
