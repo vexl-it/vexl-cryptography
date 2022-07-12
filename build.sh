@@ -88,7 +88,7 @@ build() {
             export CC=clang;
             export CROSS_TOP=/Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer
             export CROSS_SDK=iPhoneOS.sdk
-            ./Configure ios64-cross "-arch arm64 -fembed-bitcode -miphoneos-version-min=14.0" no-shared no-dso no-hw no-engine --prefix="$outputPath" "-isysroot /Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk"
+            ./Configure ios64-cross "-arch arm64 -fembed-bitcode -miphoneos-version-min=14.0" no-asm no-shared no-hw --prefix="$outputPath" "-isysroot /Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk"
             ;;
         ANDROID_ARMV8)
             echo "[OPENSSL] Building for android@arm64"
