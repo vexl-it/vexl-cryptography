@@ -75,20 +75,20 @@ build() {
             echo "[OPENSSL] Building for ios_sim@x86_64"
             export CROSS_TOP=/Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer
             export CROSS_SDK=iPhoneSimulator.sdk
-            ./Configure iossimulator-xcrun "-arch x86_64 -mios-simulator-version-min=14.0" no-asm no-shared no-hw no-async --prefix="$outputPath" "-isysroot /Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.0.sdk"
+            ./Configure iossimulator-xcrun "-arch x86_64 -mios-simulator-version-min=14.0" no-asm no-shared no-hw --prefix="$outputPath" "-isysroot /Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.0.sdk"
             ;;
         IOS_SIMULATOR_ARM64)
             echo "[OPENSSL] Building for ios_sim@arm64"
             export CROSS_TOP=/Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer
             export CROSS_SDK=iPhoneSimulator.sdk
-            ./Configure iossimulator-xcrun "-arch arm64 -mios-simulator-version-min=14.0" no-asm no-shared no-hw no-async --prefix="$outputPath" "-isysroot /Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.0.sdk"
+            ./Configure iossimulator-xcrun "-arch arm64 -mios-simulator-version-min=14.0" no-asm no-shared no-hw --prefix="$outputPath" "-isysroot /Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator14.0.sdk"
             ;;
         IOS_ARM64)
             echo "[OPENSSL] Building for ios@arm64"
             export CC=clang;
             export CROSS_TOP=/Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer
             export CROSS_SDK=iPhoneOS.sdk
-            ./Configure ios64-cross "-arch arm64 -fembed-bitcode -miphoneos-version-min=14.0" no-shared no-dso no-hw no-engine --prefix="$outputPath" "-isysroot /Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk"
+            ./Configure ios64-cross "-arch arm64 -fembed-bitcode -miphoneos-version-min=14.0" no-asm no-shared no-hw --prefix="$outputPath" "-isysroot /Applications/Xcode-12.0.0.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS14.0.sdk"
             ;;
         ANDROID_ARMV8)
             echo "[OPENSSL] Building for android@arm64"
