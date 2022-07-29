@@ -1,0 +1,9 @@
+FROM arm64v8/openjdk:17-jdk-slim
+
+RUN apt-get update
+RUN apt-get install -y gcc make perl build-essential
+RUN mkdir /root/vexl
+
+WORKDIR "/root/vexl"
+
+CMD ["/usr/bin/make","linux-arm64"]

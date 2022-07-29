@@ -1,0 +1,7 @@
+openssl/*
+*.d
+*.o
+product/*
+tmp/*
+.vscode/*
+.idea/*
