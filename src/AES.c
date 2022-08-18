@@ -32,7 +32,7 @@ void _aes_encrypt(const char *password, const int password_len, const char *mess
 
     char *cipher_str = malloc(0);
     int cipher_str_len = 0;
-    const int buff_size = 1024;
+    const int buff_size = 128;
     const int m_size = message_len;
     int m_offset = 0;
     char m_buffer[buff_size];
