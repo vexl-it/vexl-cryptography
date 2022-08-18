@@ -20,7 +20,7 @@ char *aes_decrypt(const char *password, const char *cipher) {
 
 void _aes_encrypt(const char *password, const int password_len, const char *message, const int message_len, char **cipher, int *cipher_len) {
     const EVP_MD *md = EVP_sha1();
-    const EVP_CIPHER *evp_cipher = EVP_aes_256_cbc();
+    const EVP_CIPHER *evp_cipher = EVP_aes_256_gcm();
     size_t ke_len = EVP_CIPHER_key_length(evp_cipher) + EVP_CIPHER_iv_length(evp_cipher);
     size_t km_len = EVP_MD_block_size(md);
     unsigned char ke_km[ke_len+km_len];
@@ -32,7 +32,7 @@ void _aes_encrypt(const char *password, const int password_len, const char *mess
 
     char *cipher_str = malloc(0);
     int cipher_str_len = 0;
-    const int buff_size = 1024;
+    const int buff_size = 128;
     const int m_size = message_len;
     int m_offset = 0;
     char m_buffer[buff_size];
@@ -88,7 +88,7 @@ void _aes_decrypt(const char *password, const int password_len, const char *base
 
 
     const EVP_MD *md = EVP_sha1();
-    const EVP_CIPHER *evp_cipher = EVP_aes_256_cbc();
+    const EVP_CIPHER *evp_cipher = EVP_aes_256_gcm();
     size_t ke_len = EVP_CIPHER_key_length(evp_cipher) + EVP_CIPHER_iv_length(evp_cipher);
     size_t km_len = EVP_MD_block_size(md);
     unsigned char ke_km[ke_len + km_len];
