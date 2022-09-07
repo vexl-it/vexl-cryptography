@@ -5,6 +5,9 @@
 #include "ECDSA.h"
 
 char *ecdsa_sign(const char* base64_public_key, const char* base64_private_key, const void *data, const int data_len) {
+    if (base64_public_key == NULL || base64_private_key == NULL || data == NULL) {
+        return NULL;
+    }
     const char *digest = sha256_hash(data, data_len);
     EC_KEY *eckey;
     _base64_keys_get_EC_KEY(base64_public_key, base64_private_key, &eckey);
@@ -32,6 +35,9 @@ char *ecdsa_sign(const char* base64_public_key, const char* base64_private_key, 
 }
 
 bool ecdsa_verify(const char* base64_public_key, const char *data, const int data_len, const char *base64_signature) {
+    if (base64_public_key == NULL || data == NULL || base64_signature == NULL) {
+        return false;
+    }
     const char *digest = sha256_hash(data, data_len);
 
     EC_KEY *eckey;
