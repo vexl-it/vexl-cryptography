@@ -19,7 +19,7 @@ char *aes_decrypt(const char *password, const char *cipher) {
 }
 
 void _aes_encrypt(const char *password, const int password_len, const char *message, const int message_len, char **cipher, int *cipher_len) {
-    if (password == NULL || cipher == NULL || cipher_len == NULL) {
+    if (password == NULL || cipher == NULL || cipher_len == NULL, message_len > MAX_DATA_SIZE_LIMIT) {
         return;
     }
     const EVP_MD *md = EVP_sha1();
@@ -82,7 +82,7 @@ void _aes_decrypt(const char *password, const int password_len, const char *base
     if (password == NULL || base64_cipher == NULL || message == NULL || message_len == NULL) {
         return;
     }
-    if (strlen(base64_cipher) == 0) {
+    if (base64_cipher_len == 0 || base64_cipher_len > MAX_CIPHER_SIZE_LIMIT) {
         *message = NULL;
         *message_len = 0;
         return;
