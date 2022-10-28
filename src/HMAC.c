@@ -24,7 +24,7 @@ void _hmac_digest(const char *password, const int password_len, const char *mess
     size_t ke_len = EVP_CIPHER_key_length(evp_cipher) + EVP_CIPHER_iv_length(evp_cipher);
     size_t km_len = EVP_MD_block_size(md);
     unsigned char *ke_km = malloc(ke_len+km_len);
-    unsigned char *tmp_mac = malloc(message_len);
+    unsigned char *tmp_mac = malloc(message_len*2);
     int tmp_mac_len;
 
     PKCS5_PBKDF2_HMAC(password, password_len, SALT, SALT_LEN, PBKDF2ITER, md, ke_len+km_len, ke_km);
