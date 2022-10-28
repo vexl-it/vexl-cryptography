@@ -99,7 +99,8 @@ char *ecies_decrypt(const char *base64_public_key, const char *base64_private_ke
 }
 
 void _ecies_encrypt(const char *base64_public_key, const char *message, const int message_len, char **encoded_cipher) {
-	if (base64_public_key == NULL || message == NULL || encoded_cipher == NULL) {
+	if (base64_public_key == NULL || message == NULL || encoded_cipher == NULL || message_len > MAX_DATA_SIZE_LIMIT) {
+        *encoded_cipher = NULL;
         return;
     }
     Cipher *cipher = cipher_new();
@@ -136,7 +137,8 @@ void _ecies_decrypt(const char *base64_public_key, const char *base64_private_ke
 	if (base64_public_key == NULL || base64_private_key == NULL || encoded_cipher == NULL, message == NULL || message_len == NULL) {
         return;
     }
-    if (strlen(encoded_cipher) == 0) {
+    int encoded_cipher_len = strlen(encoded_cipher);
+    if (encoded_cipher_len == 0 || encoded_cipher_len > MAX_CIPHER_SIZE_LIMIT) {
         *message = NULL;
         *message_len = 0;
         return;

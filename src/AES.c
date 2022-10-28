@@ -19,7 +19,7 @@ char *aes_decrypt(const char *password, const char *cipher) {
 }
 
 void _aes_encrypt(const char *password, const int password_len, const char *message, const int message_len, char **cipher, int *cipher_len) {
-    if (password == NULL || cipher == NULL || cipher_len == NULL) {
+    if (password == NULL || cipher == NULL || cipher_len == NULL, message_len > MAX_DATA_SIZE_LIMIT) {
         return;
     }
     const EVP_MD *md = EVP_sha1();
@@ -82,7 +82,7 @@ void _aes_decrypt(const char *password, const int password_len, const char *base
     if (password == NULL || base64_cipher == NULL || message == NULL || message_len == NULL) {
         return;
     }
-    if (strlen(base64_cipher) == 0) {
+    if (base64_cipher_len == 0 || base64_cipher_len > MAX_CIPHER_SIZE_LIMIT) {
         *message = NULL;
         *message_len = 0;
         return;
@@ -100,7 +100,7 @@ void _aes_decrypt(const char *password, const int password_len, const char *base
     unsigned char ke_km[ke_len + km_len];
 
 
-    unsigned char dc_out[cipher_len+km_len];
+    unsigned char *dc_out = malloc(cipher_len+km_len);
     memset(dc_out, 0, cipher_len+km_len);
     size_t dc_len = 0;
     int outl = 0;
@@ -122,4 +122,5 @@ void _aes_decrypt(const char *password, const int password_len, const char *base
     EVP_CIPHER_CTX_free(ectx);
     EVP_CIPHER_free(evp_cipher);
     EVP_MD_free(md);
+    free(dc_out);
 }
