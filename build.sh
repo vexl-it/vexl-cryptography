@@ -149,7 +149,7 @@ cd $LIBFOLDER
 if [ -d $OPENSSLREPO ]; then
     echo "[OPENSSL] Using current OpenSSL repo"
 else 
-    git clone git://git.openssl.org/openssl.git $OPENSSLREPO
+    git clone --depth 1 --branch openssl-3.0.7 git://git.openssl.org/openssl.git $OPENSSLREPO
 fi
 
 if [ "$#" = 0 ]; then
