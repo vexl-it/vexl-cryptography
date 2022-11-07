@@ -115,8 +115,9 @@ void _aes_decrypt(const char *password, const int password_len, const char *base
     dc_len += outl;
     dc_out[dc_len] = 0;
 
-    *message = malloc(dc_len);
+    *message = malloc(dc_len+1);
     memcpy(*message, dc_out, dc_len);
+    (*message)[dc_len] = 0;
     *message_len = dc_len;
 
     EVP_CIPHER_CTX_free(ectx);
