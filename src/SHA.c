@@ -5,6 +5,9 @@
 #include "SHA.h"
 
 char *sha256_hash(const void *data, const int data_len) {
+    if (data == NULL) {
+        return NULL;
+    }
     SHA256_CTX context;
     char digest[SHA256_DIGEST_LENGTH];
 

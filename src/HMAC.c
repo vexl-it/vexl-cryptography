@@ -16,12 +16,15 @@ bool hmac_verify(const char *password, const char *message, const char *digest) 
 }
 
 void _hmac_digest(const char *password, const int password_len, const char *message, const int message_len, char **mac, int *mac_len) {
+    if (password == NULL || message == NULL || mac == NULL || mac_len == NULL) {
+        return;
+    }
     const EVP_MD *md = EVP_sha256();
     const EVP_CIPHER *evp_cipher = EVP_aes_256_gcm();
     size_t ke_len = EVP_CIPHER_key_length(evp_cipher) + EVP_CIPHER_iv_length(evp_cipher);
     size_t km_len = EVP_MD_block_size(md);
-    unsigned char ke_km[ke_len+km_len];
-    unsigned char tmp_mac[message_len];
+    unsigned char *ke_km = malloc(ke_len+km_len);
+    unsigned char *tmp_mac = malloc(ke_len);
     int tmp_mac_len;
 
     PKCS5_PBKDF2_HMAC(password, password_len, SALT, SALT_LEN, PBKDF2ITER, md, ke_len+km_len, ke_km);
@@ -31,9 +34,14 @@ void _hmac_digest(const char *password, const int password_len, const char *mess
     EVP_MD_free(md);
 
     base64_encode(tmp_mac, tmp_mac_len, mac_len, mac);
+    free(ke_km);
+    free(tmp_mac);
 }
 
 bool _hmac_verify(const char *password, const int password_len, const char *message, const int message_len, const char *base64_mac, const int base64_mac_len) {
+    if (password == NULL || message == NULL || base64_mac == NULL) {
+        return false;
+    }
     unsigned char *mac = NULL;
     int mac_len = 0;
     base64_decode(base64_mac, base64_mac_len, &mac_len, &mac);
