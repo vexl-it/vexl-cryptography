@@ -4,7 +4,7 @@
 
 #include "ECDSA.h"
 
-char *ecdsa_sign(const char* base64_public_key, const char* base64_private_key, const void *data, const int data_len) {
+char *ecdsa_sign_v2(const char* base64_public_key, const char* base64_private_key, const void *data, const int data_len) {
     if (base64_public_key == NULL || base64_private_key == NULL || data == NULL) {
         return NULL;
     }
@@ -51,7 +51,7 @@ char *ecdsa_sign(const char* base64_public_key, const char* base64_private_key, 
     return base64_signature;
 }
 
-bool ecdsa_verify(const char* base64_public_key, const char *data, const int data_len, const char *base64_signature) {
+bool ecdsa_verify_v2(const char* base64_public_key, const char *data, const int data_len, const char *base64_signature) {
     if (base64_public_key == NULL || data == NULL || base64_signature == NULL) {
         return false;
     }
@@ -95,7 +95,7 @@ bool ecdsa_verify(const char* base64_public_key, const char *data, const int dat
 }
 
 
-char *ecdsa_sign_depr(const char* base64_public_key, const char* base64_private_key, const void *data, const int data_len) {
+char *ecdsa_sign(const char* base64_public_key, const char* base64_private_key, const void *data, const int data_len) {
     if (base64_public_key == NULL || base64_private_key == NULL || data == NULL) {
         return NULL;
     }
@@ -125,7 +125,7 @@ char *ecdsa_sign_depr(const char* base64_public_key, const char* base64_private_
     return base64_signature;
 }
 
-bool ecdsa_verify_depr(const char* base64_public_key, const char *data, const int data_len, const char *base64_signature) {
+bool ecdsa_verify(const char* base64_public_key, const char *data, const int data_len, const char *base64_signature) {
     if (base64_public_key == NULL || data == NULL || base64_signature == NULL) {
         return false;
     }
