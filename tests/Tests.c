@@ -154,7 +154,7 @@ void test_pre_generated_message_depreciated_ecdsa() {
     log_message("Testing pre generated ECDSA digital signature - Depreciated method");
 
     char publicKey[] = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUU0d0VBWUhLb1pJemowQ0FRWUZLNEVFQUNFRE9nQUVSZGtIN1hHM1VRaGZIR1RzQmJ5alVXRmU2SFNycmxZWQpYcm95b0cvdGszMDlxaEprbGtCcGN0eWV2OUJIQUE0VlVPWi9GSytpNzZFPQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K";
-    char privateKey[] = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1IZ0NBUUF3RUFZSEtvWkl6ajBDQVFZRks0RUVBQ0VFWVRCZkFnRUJCQnhtK3VwbUxUdjFrdURscDVjVlpxNDYKTWxlN1lFNW4wZWl3UzFZbG9Ud0RPZ0FFUmRrSDdYRzNVUWhmSEdUc0JieWpVV0ZlNkhTcnJsWVlYcm95b0cvdAprMzA5cWhKa2xrQnBjdHlldjlCSEFBNFZVT1ovRksraTc2RT0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo=";
+//    char privateKey[] = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1IZ0NBUUF3RUFZSEtvWkl6ajBDQVFZRks0RUVBQ0VFWVRCZkFnRUJCQnhtK3VwbUxUdjFrdURscDVjVlpxNDYKTWxlN1lFNW4wZWl3UzFZbG9Ud0RPZ0FFUmRrSDdYRzNVUWhmSEdUc0JieWpVV0ZlNkhTcnJsWVlYcm95b0cvdAprMzA5cWhKa2xrQnBjdHlldjlCSEFBNFZVT1ovRksraTc2RT0KLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQo=";
     char message[] = "ftaafxneekyrmnfzwyxmathnbvbxjdjt";
     // generated with the depreciated API
     char signature[] = "MD4CHQCSV80cM67nZxTudVj1+pPyWvpyxZH/HAsUIqvgAh0AyxJydw0Suv3sD+H0fkrcEYCikJDGEJjR2KLYzA==";
