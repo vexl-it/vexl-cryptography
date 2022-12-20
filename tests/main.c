@@ -36,8 +36,11 @@ int main(int argc, char **argv) {
     test_hmac();
     test_ecies(curve);
     test_incorrect_keys_ecies(curve);
-    test_ecdsa(curve);
 
+    test_ecdsa_v2(curve);
+    test_ecdsa_v1(curve);
+    test_pre_generated_message_ecdsa_v2();
+    test_pre_generated_message_ecdsa_v1();
 
     int count;
     if ((count = parse_args(argc, argv)) > 0) {
