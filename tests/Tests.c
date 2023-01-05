@@ -41,6 +41,42 @@ void test_aes_long_string() {
     free(message);
 }
 
+void test_aes_decrypt_static_message() {
+    log_message("Testing AES symetric decryption with static message");
+
+    const char encrypted[] = "000.MIjTH/q+BU3aOjFXZdOtgVqbpXaOcqdR/sx6fleza/j260cu+1Sg725/MpQY0MRq5bnU0Iady3kwI4HTL55xGEoDmQwbcT9nuuv1xfmSEWnTYKxtQF5DyB3Or2mcTN/mOGRAU4UYIpomkV2BXS4iFRNW89IXATNlT74Rm2BTbRk=.26rZePJ2d+qy2nF2cbhJbQ==";
+    const char expected_message[] = "hello world";
+    const char key[] = "somePass";
+
+    char *message = aes_decrypt(key, encrypted);
+    assert_equals(message, expected_message, "Decrypted content match");
+
+    free(message);
+}
+
+void test_aes_encrypt_static_message() {
+    log_message("Testing AES symetric encryption with static message");
+
+    const char expected_encrypted[] = "000.MIjTH/q+BU3aOjFXZdOtgVqbpXaOcqdR/sx6fleza/j260cu+1Sg725/MpQY0MRq5bnU0Iady3kwI4HTL55xGEoDmQwbcT9nuuv1xfmSEWnTYKxtQF5DyB3Or2mcTN/mOGRAU4UYIpomkV2BXS4iFRNW89IXATNlT74Rm2BTbRk=.26rZePJ2d+qy2nF2cbhJbQ==";
+    const char message[] = "hello world";
+    const char key[] = "somePass";
+
+    char *encrypted = aes_encrypt(key, message);
+    assert_equals(encrypted, expected_encrypted, "Decrypted content match");
+    free(encrypted);
+}
+
+void test_aes_bad_tag() {
+    log_message("Testing AES encryption with bad tag");
+
+    const char bad_encrypted[] = "000.MIjTH/q+BU3aOjFXZdOtgVqbpXaOcqdR/sx6fleza/j260cu+1Sg725/MpQY0MRq5bnU0Iady3kwI4HTL55xGEoDmQwbcT9nuuv1xfmSEWnTYKxtQF5DyB3Or2mcTN/mOGRAU4UYIpomkV2BXS4iFRNW89IXATNlT74Rm2BTbRk=.26rZePJ2d+qy2nF2cbhJbC==";
+    const char key[] = "somePass";
+
+    char *decrypted = aes_decrypt(key, bad_encrypted);
+    assert_null(decrypted, "Decrypted content is null");
+    free(decrypted);
+}
+
 void test_hmac() {
     log_message("Testing hmac");
 
@@ -51,6 +87,20 @@ void test_hmac() {
     assert_true(valid, "Checksum matches");
 
     free(mac);
+}
+
+void test_hmac_static() {
+    log_message("Testing hmac static values");
+
+    const char pass[] = "pass";
+    const char message[] = "message";
+    const char hmac[] = "Ze5clxkEFAc/xm96+mX0XYE6ZB1wtoa5LMCP+Oj4zRM=";
+
+    char *generated_hmac = hmac_digest(pass, message);
+    assert_equals(hmac, generated_hmac, "Generated hmac matches");
+
+    bool valid = hmac_verify(pass, message, hmac);
+    assert_true(valid, "Checksum matches");
 }
 
 void test_ecies(Curve curve) {
