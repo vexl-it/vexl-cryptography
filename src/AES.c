@@ -30,44 +30,44 @@ char *aes_encrypt(const char *password, const char *message) {
 char *aes_decrypt(const char *password, const char *cipher) {
     char *b64_cipher = NULL;
     char *b64_tag = NULL;
+    char *message = NULL;
 
-    const char s[2] = ".";
+    const char separator[2] = ".";
     char *token;
 
+    // We don't want to modify cipher todo is this a good idea?
+    char *cipher_copy = malloc(strlen(cipher) + 1);
+    strcpy(cipher_copy, cipher);
+
     // version
-    token = strtok(cipher, ".");
+    token = strtok(cipher_copy, ".");
     if(token == NULL) {
-        free(b64_cipher);
-        free(b64_tag);
-        return NULL;
+        goto cleanup;
     }
 
     // cipher
-    token = strtok(NULL, s);
+    token = strtok(NULL, separator);
     if(token == NULL) {
-        free(b64_cipher);
-        free(b64_tag);
-        return NULL;
+        goto cleanup;
     }
     b64_cipher = malloc(strlen(token) + 1);
     strcpy(b64_cipher,token);
 
     // tag
-    token = strtok(NULL, s);
+    token = strtok(NULL, separator);
     if(token == NULL){
-        free(b64_cipher);
-        free(b64_tag);
-        return NULL;
+        goto cleanup;
     }
     b64_tag = malloc(strlen(token) + 1);
     strcpy(b64_tag,token);
 
-    char *message = NULL;
     int message_len = 0;
     _aes_decrypt(password, strlen(password), b64_cipher, strlen(b64_cipher), b64_tag, strlen(b64_tag), &message, &message_len);
 
+    cleanup:
     free(b64_cipher);
     free(b64_tag);
+    free(cipher_copy);
     return message;
 }
 
