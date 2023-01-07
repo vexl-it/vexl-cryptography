@@ -13,8 +13,9 @@ char *aes_encrypt(const char *password, const char *message) {
 
     _aes_encrypt(password, strlen(password), message, strlen(message), &cipher, &cipher_len, &tag, &tag_len);
 
-    char *encoded = malloc(VERSION_PREFIX_LEN + cipher_len + 1 + tag_len + 1);
-    memset(encoded, 0, cipher_len + 1);
+    int encoded_len = VERSION_PREFIX_LEN + cipher_len + 1 + tag_len + 1;
+    char *encoded = malloc(encoded_len);
+    memset(encoded, 0, encoded_len);
     memcpy(encoded, VERSION_PREFIX, VERSION_PREFIX_LEN);
     memcpy(encoded + VERSION_PREFIX_LEN, cipher, cipher_len);
     memcpy(encoded + VERSION_PREFIX_LEN + cipher_len, ".", 1);
@@ -48,7 +49,7 @@ char *aes_decrypt(const char *password, const char *cipher) {
         free(b64_tag);
         return NULL;
     }
-    b64_cipher = malloc((char *) (strlen(token) + 1));
+    b64_cipher = malloc(strlen(token) + 1);
     strcpy(b64_cipher,token);
 
     // tag
@@ -58,7 +59,7 @@ char *aes_decrypt(const char *password, const char *cipher) {
         free(b64_tag);
         return NULL;
     }
-    b64_tag = malloc((char *) (strlen(token) + 1));
+    b64_tag = malloc(strlen(token) + 1);
     strcpy(b64_tag,token);
 
     char *message = NULL;
@@ -83,7 +84,7 @@ void _aes_encrypt(const char *password, const int password_len, const char *mess
     PKCS5_PBKDF2_HMAC(
         // pass
         password,
-        // pass lem
+        // pass len
         password_len,
         // salt
         SALT,
@@ -101,43 +102,18 @@ void _aes_encrypt(const char *password, const int password_len, const char *mess
     EVP_CIPHER_CTX *ectx = EVP_CIPHER_CTX_new();
     *cipher_len = 0;
 
-    char *cipher_str = malloc(0);
+    char cipher_str[message_len];
     int cipher_str_len = 0;
-    const int buff_size = 128;
-    const int m_size = message_len;
-    int m_offset = 0;
-    char m_buffer[buff_size];
-    memset(m_buffer, 0, buff_size);
-    int o_len;
-    char o_buffer[buff_size + EVP_MAX_BLOCK_LENGTH];
-    memset(o_buffer, 0, buff_size + EVP_MAX_BLOCK_LENGTH);
 
     EVP_EncryptInit_ex(ectx, evp_cipher, NULL, ke_km, ke_km + EVP_CIPHER_key_length(evp_cipher));
+    EVP_EncryptUpdate(ectx, cipher_str, &cipher_str_len, message, message_len);
 
-    do {
-        int read_len = (m_offset + buff_size > m_size) ? m_size - m_offset : buff_size;
-        read_len = (read_len < 0) ? 0 : read_len;
+    int final_len;
+    // aes gcm final does nothing to output
+    EVP_EncryptFinal_ex(ectx, cipher_str + cipher_str_len, &final_len);
 
-        if (read_len < buff_size) {
-            memset(m_buffer, 0, buff_size);
-        }
-
-        memcpy(m_buffer, message+m_offset, read_len*sizeof(char));
-
-        EVP_EncryptUpdate(ectx, o_buffer, &o_len, m_buffer, buff_size);
-
-        cipher_str = (char *)realloc(cipher_str, cipher_str_len + o_len);
-        memcpy(cipher_str+cipher_str_len, o_buffer, o_len*sizeof(char));
-        cipher_str_len += o_len;
-        m_offset += read_len;
-    } while (m_offset < m_size);
-
-    memset(o_buffer, 0, buff_size);
-    EVP_EncryptFinal_ex(ectx, cipher_str, &o_len);
-    cipher_str_len += o_len;
-
-    char *tag_buf[16];
-    EVP_CIPHER_CTX_ctrl(ectx, EVP_CTRL_GCM_GET_TAG, 16, tag_buf);
+    char *tag_buf[EVP_GCM_TLS_TAG_LEN];
+    EVP_CIPHER_CTX_ctrl(ectx, EVP_CTRL_GCM_GET_TAG, EVP_GCM_TLS_TAG_LEN, tag_buf);
 
     base64_encode(cipher_str, cipher_str_len, cipher_len, cipher);
     base64_encode(tag_buf, 16, tag_len, tag);
@@ -145,7 +121,6 @@ void _aes_encrypt(const char *password, const int password_len, const char *mess
     EVP_CIPHER_CTX_free(ectx);
     EVP_CIPHER_free(evp_cipher);
     EVP_MD_free(md);
-    free(cipher_str);
 }
 
 
@@ -232,7 +207,6 @@ void _aes_decrypt(const char *password, const int password_len, const char *base
         _error(5, "Invalid security tag");
         *message = NULL;
         *message_len = 0;
-        return;
     }
 
     EVP_CIPHER_CTX_free(ectx);

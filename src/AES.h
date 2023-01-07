@@ -22,6 +22,7 @@
 
 #include "common/Constants.h"
 #include "common/Base64.h"
+#include "common/Log.h"
 
 # ifdef __cplusplus
 extern "C" {

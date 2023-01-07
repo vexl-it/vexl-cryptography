@@ -11,18 +11,8 @@ char *ecdsa_sign_v2(const char* base64_public_key, const char* base64_private_ke
 
     const char *digest = sha256_hash(data, data_len);
 
-    // TODO how to move hash generation into function?
-    SHA256_CTX sha256;
     char hash[SHA256_DIGEST_LENGTH];
-    if(!SHA256_Init(&sha256)) {
-        return false;
-    }
-    if(!SHA256_Update(&sha256, data, data_len)) {
-        return false;
-    }
-    if(!SHA256_Final(hash, &sha256)) {
-        return false;
-    }
+    SHA256(data, data_len, hash);
 
     EC_KEY *eckey;
     _base64_keys_get_EC_KEY(base64_public_key, base64_private_key, &eckey);
@@ -56,18 +46,8 @@ bool ecdsa_verify_v2(const char* base64_public_key, const char *data, const int 
         return false;
     }
 
-    // TODO how to move hash generation into function?
-    SHA256_CTX sha256;
     char hash[SHA256_DIGEST_LENGTH];
-    if(!SHA256_Init(&sha256)) {
-        return false;
-    }
-    if(!SHA256_Update(&sha256, data, data_len)) {
-        return false;
-    }
-    if(!SHA256_Final(hash, &sha256)) {
-        return false;
-    }
+    SHA256(data, data_len, hash);
 
     EC_KEY *eckey;
     _base64_keys_get_EC_KEY(base64_public_key, NULL, &eckey);

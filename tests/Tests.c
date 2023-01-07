@@ -44,7 +44,7 @@ void test_aes_long_string() {
 void test_aes_decrypt_static_message() {
     log_message("Testing AES symetric decryption with static message");
 
-    const char encrypted[] = "000.MIjTH/q+BU3aOjFXZdOtgVqbpXaOcqdR/sx6fleza/j260cu+1Sg725/MpQY0MRq5bnU0Iady3kwI4HTL55xGEoDmQwbcT9nuuv1xfmSEWnTYKxtQF5DyB3Or2mcTN/mOGRAU4UYIpomkV2BXS4iFRNW89IXATNlT74Rm2BTbRk=.26rZePJ2d+qy2nF2cbhJbQ==";
+    const char encrypted[] = "000.MIjTH/q+BU3aOjE=.R17vayzHmO50dNhHG7B+Bw==";
     const char expected_message[] = "hello world";
     const char key[] = "somePass";
 
@@ -57,7 +57,7 @@ void test_aes_decrypt_static_message() {
 void test_aes_encrypt_static_message() {
     log_message("Testing AES symetric encryption with static message");
 
-    const char expected_encrypted[] = "000.MIjTH/q+BU3aOjFXZdOtgVqbpXaOcqdR/sx6fleza/j260cu+1Sg725/MpQY0MRq5bnU0Iady3kwI4HTL55xGEoDmQwbcT9nuuv1xfmSEWnTYKxtQF5DyB3Or2mcTN/mOGRAU4UYIpomkV2BXS4iFRNW89IXATNlT74Rm2BTbRk=.26rZePJ2d+qy2nF2cbhJbQ==";
+    const char expected_encrypted[] = "000.MIjTH/q+BU3aOjE=.R17vayzHmO50dNhHG7B+Bw==";
     const char message[] = "hello world";
     const char key[] = "somePass";
 
@@ -69,7 +69,7 @@ void test_aes_encrypt_static_message() {
 void test_aes_bad_tag() {
     log_message("Testing AES encryption with bad tag");
 
-    const char bad_encrypted[] = "000.MIjTH/q+BU3aOjFXZdOtgVqbpXaOcqdR/sx6fleza/j260cu+1Sg725/MpQY0MRq5bnU0Iady3kwI4HTL55xGEoDmQwbcT9nuuv1xfmSEWnTYKxtQF5DyB3Or2mcTN/mOGRAU4UYIpomkV2BXS4iFRNW89IXATNlT74Rm2BTbRk=.26rZePJ2d+qy2nF2cbhJbC==";
+    const char bad_encrypted[] = "000.MIjTH/q+BU3aOjE=.R17vayzHmO50dnhHG7B+Bw==";
     const char key[] = "somePass";
 
     char *decrypted = aes_decrypt(key, bad_encrypted);

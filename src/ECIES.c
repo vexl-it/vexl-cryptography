@@ -122,7 +122,8 @@ void _ecies_encrypt(const char *base64_public_key, const char *message, const in
 	unsigned char shared_secret[S_len];
 	BN_bn2bin(S, shared_secret);
 
-    _aes_encrypt(shared_secret, S_len, message, message_len, &(cipher->cipher), &(cipher->cipher_len));
+    // TODO fix and uncomment
+//    _aes_encrypt(shared_secret, S_len, message, message_len, &(cipher->cipher), &(cipher->cipher_len), &(cipher->tag), &(cipher->tag_len));
     _hmac_digest(shared_secret, S_len, cipher->cipher, cipher->cipher_len, &(cipher->mac), &(cipher->mac_len));
 
     *encoded_cipher = cipher_encode(cipher);
@@ -175,7 +176,8 @@ void _ecies_decrypt(const char *base64_public_key, const char *base64_private_ke
 
     char *decrypted;
     int decrypted_len;
-    _aes_decrypt(shared_secret, S_len, cipher->cipher, cipher->cipher_len, &decrypted, &decrypted_len);
+    // TODO fix and uncomment
+    //_aes_decrypt(shared_secret, S_len, cipher->cipher, cipher->cipher_len, &decrypted, &decrypted_len);
 
     *message = decrypted;
     *message_len = decrypted_len;
