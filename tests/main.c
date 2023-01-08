@@ -38,6 +38,7 @@ int main(int argc, char **argv) {
     test_aes_bad_tag();
     test_hmac();
     test_ecies(curve);
+    test_ecies_static_message();
     // TODO more ecies tests
     test_incorrect_keys_ecies(curve);
 
