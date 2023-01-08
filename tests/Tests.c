@@ -124,7 +124,7 @@ void test_ecies(Curve curve) {
 }
 
 void test_ecies_static_message() {
-    log_message("Testing ECIES encryption with static data");
+    log_message("Testing ECIES decription with static data");
 
     char pubKey[] = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUU0d0VBWUhLb1pJemowQ0FRWUZLNEVFQUNFRE9nQUVXRGFXNkVud2xVVStiblFWSU9JY2tnSUQ2djBsU0xFMQowczRjZVNsYjVSbHlRcHl3eVpwR2Y0a0RiWGVRYUxSSitGS1d6clRFT2ZNPQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K";
     char privKey[] = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0JBZ0VBTUJBR0J5cUdTTTQ5QWdFR0JTdUJCQUFoQkdvd2FBSUJBUVFjMXFPQWpUakduR1FpQmxHdVp1OWIKOFFnbTNMaTQvVlF6T2k5YjhhQUhCZ1VyZ1FRQUlhRThBem9BQkZnMmx1aEo4SlZGUG01MEZTRGlISklDQStyOQpKVWl4TmRMT0hIa3BXK1VaY2tLY3NNbWFSbitKQTIxM2tHaTBTZmhTbHM2MHhEbnoKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ==";
@@ -134,6 +134,30 @@ void test_ecies_static_message() {
 
     char *decrypted = ecies_decrypt((const char *) &pubKey, (const char *) &privKey, (const char *) &encrypted);
     assert_equals(decrypted, message, "Decrypts cipher as expected");
+
+    free(decrypted);
+}
+
+void test_ecies_fail() {
+    log_message("Testing ECIES decription fail with bad cipher");
+
+    char pubKey[] = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUU0d0VBWUhLb1pJemowQ0FRWUZLNEVFQUNFRE9nQUVXRGFXNkVud2xVVStiblFWSU9JY2tnSUQ2djBsU0xFMQowczRjZVNsYjVSbHlRcHl3eVpwR2Y0a0RiWGVRYUxSSitGS1d6clRFT2ZNPQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K";
+    char privKey[] = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0JBZ0VBTUJBR0J5cUdTTTQ5QWdFR0JTdUJCQUFoQkdvd2FBSUJBUVFjMXFPQWpUakduR1FpQmxHdVp1OWIKOFFnbTNMaTQvVlF6T2k5YjhhQUhCZ1VyZ1FRQUlhRThBem9BQkZnMmx1aEo4SlZGUG01MEZTRGlISklDQStyOQpKVWl4TmRMT0hIa3BXK1VaY2tLY3NNbWFSbitKQTIxM2tHaTBTZmhTbHM2MHhEbnoKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ==";
+
+    char encrypted_no_dots[] = "000.Xog6f+i5MUMliwngp7YNTXEddJU=.z1N0EuaKgktjHF96d6aB8ii4D0lgMuJytzYaUDq22Rc=BOiAShyfTVPIPp1YIuDuarwPt4dM1JRTxOdWabLSLm6Sqi97sRDvzGTa6+CA3NHoUVPjqP/IG2LY.NvnBhi32EivPoncNK70O4w==";
+
+    char *decrypted = ecies_decrypt((const char *) &pubKey, (const char *) &privKey, (const char *) &encrypted_no_dots);
+    assert_null(decrypted, "Did not decrypt test message successfully");
+
+    char encrypted_bad_tag[] = "000.Xog6f+i5MUMliwngp7YNTXEddJU=.z1N0EuaKgktjHF96d6aB8ii4D0lgMuJytzYaUDq22Rc=.BOiAShyfTVPIPp1YIuDuarwPt4dM1JRTxOdWabLSLm6Sqi97sRDvzGTa6+CA3NHoUVPjqP/IG2LY.NvnBhi32EivPoncNK71O4w==";
+    decrypted = ecies_decrypt((const char *) &pubKey, (const char *) &privKey, (const char *) &encrypted_bad_tag);
+    assert_null(decrypted, "Did not decrypt test message successfully");
+
+    char encrypted_bad_mac[] = "000.Xog6f+i5MUMliwngp7YNTXEddJU=.z1N0EuaKgktjHF96d6aB8ii4D1lgMuJytzYaUDq22Rc=.BOiAShyfTVPIPp1YIuDuarwPt4dM1JRTxOdWabLSLm6Sqi97sRDvzGTa6+CA3NHoUVPjqP/IG2LY.NvnBhi32EivPoncNK70O4w==";
+    decrypted = ecies_decrypt((const char *) &pubKey, (const char *) &privKey, (const char *) &encrypted_bad_mac);
+    assert_null(decrypted, "Did not decrypt test message successfully");
+
+    free(decrypted);
 }
 
 void test_incorrect_keys_ecies(Curve curve) {

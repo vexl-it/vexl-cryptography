@@ -24,6 +24,7 @@ void test_hmac();
 void test_ecies(Curve curve);
 void test_incorrect_keys_ecies(Curve curve);
 void test_ecies_static_message();
+void test_ecies_fail();
 void test_ecdsa_v2(Curve curve);
 void test_ecdsa_v1(Curve curve);
 void test_pre_generated_message_ecdsa_v2();

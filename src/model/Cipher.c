@@ -77,16 +77,16 @@ Cipher *cipher_decode(char *digest) {
     char *token = strtok(digest_copy, separator);
     if (token == NULL) {
         cipher_free(cipher);
-        goto cleanup;
         cipher = NULL;
+        goto cleanup;
     }
 
     // cipher
     token = strtok(NULL, separator);
     if(token == NULL) {
         cipher_free(cipher);
-        goto cleanup;
         cipher = NULL;
+        goto cleanup;
     }
     token_into_part(token, &cipher->cipher, &cipher->cipher_len);
 
@@ -96,8 +96,8 @@ Cipher *cipher_decode(char *digest) {
 
     if(token == NULL) {
         cipher_free(cipher);
-        goto cleanup;
         cipher = NULL;
+        goto cleanup;
     }
     token_into_part(token, &cipher->mac, &cipher->mac_len);
 
@@ -105,8 +105,8 @@ Cipher *cipher_decode(char *digest) {
     token = strtok(NULL, separator);
     if(token == NULL) {
         cipher_free(cipher);
-        goto cleanup;
         cipher = NULL;
+        goto cleanup;
     }
     token_into_part(token, &cipher->public_key, &cipher->public_key_len);
 
@@ -114,8 +114,8 @@ Cipher *cipher_decode(char *digest) {
     token = strtok(NULL, separator);
     if(token == NULL) {
         cipher_free(cipher);
-        goto cleanup;
         cipher = NULL;
+        goto cleanup;
     }
     token_into_part(token, &cipher->tag, &cipher->tag_len);
 

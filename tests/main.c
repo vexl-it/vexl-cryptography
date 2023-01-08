@@ -37,9 +37,10 @@ int main(int argc, char **argv) {
     test_aes_encrypt_static_message();
     test_aes_bad_tag();
     test_hmac();
+    test_hmac_static();
     test_ecies(curve);
     test_ecies_static_message();
-    // TODO more ecies tests
+    test_ecies_fail();
     test_incorrect_keys_ecies(curve);
 
     test_ecdsa_v2(curve);

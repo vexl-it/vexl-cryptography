@@ -122,7 +122,6 @@ void _ecies_encrypt(const char *base64_public_key, const char *message, const in
 	unsigned char shared_secret[S_len];
 	BN_bn2bin(S, shared_secret);
 
-    // TODO fix and uncomment
     _aes_encrypt(shared_secret, S_len, message, message_len, &(cipher->cipher), &(cipher->cipher_len), &(cipher->tag), &(cipher->tag_len));
     _hmac_digest(shared_secret, S_len, cipher->cipher, cipher->cipher_len, &(cipher->mac), &(cipher->mac_len));
 
@@ -135,46 +134,59 @@ void _ecies_encrypt(const char *base64_public_key, const char *message, const in
 }
 
 void _ecies_decrypt(const char *base64_public_key, const char *base64_private_key, const char *encoded_cipher, char **message, int *message_len) {
-	if (base64_public_key == NULL || base64_private_key == NULL || encoded_cipher == NULL, message == NULL || message_len == NULL) {
-        return;
+	Cipher *cipher = NULL;
+    unsigned char *pub_key = NULL;
+    EC_KEY *key = NULL;
+    BIGNUM *R = NULL;
+    BIGNUM *S = NULL;
+    char *decrypted = NULL;
+    unsigned char *shared_secret = NULL;
+
+    if (base64_public_key == NULL || base64_private_key == NULL || encoded_cipher == NULL, message == NULL || message_len == NULL) {
+        goto cleanup;
     }
-    int encoded_cipher_len = strlen(encoded_cipher);
+
+    unsigned int encoded_cipher_len = strlen(encoded_cipher);
     if (encoded_cipher_len == 0 || encoded_cipher_len > MAX_CIPHER_SIZE_LIMIT) {
         *message = NULL;
         *message_len = 0;
-        return;
+        free(decrypted);
+        goto cleanup;
     }
 
-    Cipher *cipher = cipher_decode(encoded_cipher);
+    cipher = cipher_decode(encoded_cipher);
+    if (cipher == NULL) {
+        _error(5, "Unable to decode cipher");
+        goto cleanup;
+    }
 
-    unsigned char *pub_key;
     int pub_key_len;
     base64_decode(cipher->public_key, cipher->public_key_len, &pub_key_len, &pub_key);
 
-    EC_KEY *key;
     _base64_keys_get_EC_KEY(base64_public_key, base64_private_key, &key);
-    BIGNUM *R = BN_bin2bn(pub_key, pub_key_len, BN_new());
-    BIGNUM *S = BN_new();
+    R = BN_bin2bn(pub_key, pub_key_len, BN_new());
+    S = BN_new();
 
     if (EC_KEY_private_derive_S(key, R, S) != 0) {
         _error(5, "Key derivation failed\n");
         *message = NULL;
         *message_len = 0;
-        return;
+        free(decrypted);
+        goto cleanup;
     }
 
     size_t S_len = BN_num_bytes(S);
-    unsigned char shared_secret[S_len];
+    shared_secret = malloc(S_len);
     BN_bn2bin(S, shared_secret);
 
     if (!_hmac_verify(shared_secret, S_len, cipher->cipher, cipher->cipher_len, cipher->mac, cipher->mac_len)) {
         _error(5, "MAC verification failed\n");
         *message = NULL;
         *message_len = 0;
-        return;
+        free(decrypted);
+        goto cleanup;
     }
 
-    char *decrypted;
     int decrypted_len;
 
     _aes_decrypt(shared_secret, S_len, cipher->cipher, cipher->cipher_len, cipher->tag, cipher->tag_len, &decrypted, &decrypted_len);
@@ -182,9 +194,12 @@ void _ecies_decrypt(const char *base64_public_key, const char *base64_private_ke
     *message = decrypted;
     *message_len = decrypted_len;
 
-    BN_free(R);
-    BN_free(S);
+    cleanup:
+    BN_clear_free(R);
+    BN_clear_free(S);
     EC_KEY_free(key);
     cipher_free(cipher);
+    free(pub_key);
+    free(shared_secret);
 }
 
