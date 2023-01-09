@@ -41,6 +41,42 @@ void test_aes_long_string() {
     free(message);
 }
 
+void test_aes_decrypt_static_message() {
+    log_message("Testing AES symetric decryption with static message");
+
+    const char encrypted[] = "000.MIjTH/q+BU3aOjE=.R17vayzHmO50dNhHG7B+Bw==";
+    const char expected_message[] = "hello world";
+    const char key[] = "somePass";
+
+    char *message = aes_decrypt(key, encrypted);
+    assert_equals(message, expected_message, "Decrypted content match");
+
+    free(message);
+}
+
+void test_aes_encrypt_static_message() {
+    log_message("Testing AES symetric encryption with static message");
+
+    const char expected_encrypted[] = "000.MIjTH/q+BU3aOjE=.R17vayzHmO50dNhHG7B+Bw==";
+    const char message[] = "hello world";
+    const char key[] = "somePass";
+
+    char *encrypted = aes_encrypt(key, message);
+    assert_equals(encrypted, expected_encrypted, "Decrypted content match");
+    free(encrypted);
+}
+
+void test_aes_bad_tag() {
+    log_message("Testing AES encryption with bad tag");
+
+    const char bad_encrypted[] = "000.MIjTH/q+BU3aOjE=.R17vayzHmO50dnhHG7B+Bw==";
+    const char key[] = "somePass";
+
+    char *decrypted = aes_decrypt(key, bad_encrypted);
+    assert_null(decrypted, "Decrypted content is null");
+    free(decrypted);
+}
+
 void test_hmac() {
     log_message("Testing hmac");
 
@@ -51,6 +87,20 @@ void test_hmac() {
     assert_true(valid, "Checksum matches");
 
     free(mac);
+}
+
+void test_hmac_static() {
+    log_message("Testing hmac static values");
+
+    const char pass[] = "pass";
+    const char message[] = "message";
+    const char hmac[] = "Ze5clxkEFAc/xm96+mX0XYE6ZB1wtoa5LMCP+Oj4zRM=";
+
+    char *generated_hmac = hmac_digest(pass, message);
+    assert_equals(hmac, generated_hmac, "Generated hmac matches");
+
+    bool valid = hmac_verify(pass, message, hmac);
+    assert_true(valid, "Checksum matches");
 }
 
 void test_ecies(Curve curve) {
@@ -71,6 +121,43 @@ void test_ecies(Curve curve) {
     KeyPair_free(keys);
     free(cipher);
     free(message);
+}
+
+void test_ecies_static_message() {
+    log_message("Testing ECIES decription with static data");
+
+    char pubKey[] = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUU0d0VBWUhLb1pJemowQ0FRWUZLNEVFQUNFRE9nQUVXRGFXNkVud2xVVStiblFWSU9JY2tnSUQ2djBsU0xFMQowczRjZVNsYjVSbHlRcHl3eVpwR2Y0a0RiWGVRYUxSSitGS1d6clRFT2ZNPQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K";
+    char privKey[] = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0JBZ0VBTUJBR0J5cUdTTTQ5QWdFR0JTdUJCQUFoQkdvd2FBSUJBUVFjMXFPQWpUakduR1FpQmxHdVp1OWIKOFFnbTNMaTQvVlF6T2k5YjhhQUhCZ1VyZ1FRQUlhRThBem9BQkZnMmx1aEo4SlZGUG01MEZTRGlISklDQStyOQpKVWl4TmRMT0hIa3BXK1VaY2tLY3NNbWFSbitKQTIxM2tHaTBTZmhTbHM2MHhEbnoKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ==";
+
+    char message[] = "Something to encrypt";
+    char encrypted[] = "000.Xog6f+i5MUMliwngp7YNTXEddJU=.z1N0EuaKgktjHF96d6aB8ii4D0lgMuJytzYaUDq22Rc=.BOiAShyfTVPIPp1YIuDuarwPt4dM1JRTxOdWabLSLm6Sqi97sRDvzGTa6+CA3NHoUVPjqP/IG2LY.NvnBhi32EivPoncNK70O4w==";
+
+    char *decrypted = ecies_decrypt((const char *) &pubKey, (const char *) &privKey, (const char *) &encrypted);
+    assert_equals(decrypted, message, "Decrypts cipher as expected");
+
+    free(decrypted);
+}
+
+void test_ecies_fail() {
+    log_message("Testing ECIES decription fail with bad cipher");
+
+    char pubKey[] = "LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS0KTUU0d0VBWUhLb1pJemowQ0FRWUZLNEVFQUNFRE9nQUVXRGFXNkVud2xVVStiblFWSU9JY2tnSUQ2djBsU0xFMQowczRjZVNsYjVSbHlRcHl3eVpwR2Y0a0RiWGVRYUxSSitGS1d6clRFT2ZNPQotLS0tLUVORCBQVUJMSUMgS0VZLS0tLS0K";
+    char privKey[] = "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0JBZ0VBTUJBR0J5cUdTTTQ5QWdFR0JTdUJCQUFoQkdvd2FBSUJBUVFjMXFPQWpUakduR1FpQmxHdVp1OWIKOFFnbTNMaTQvVlF6T2k5YjhhQUhCZ1VyZ1FRQUlhRThBem9BQkZnMmx1aEo4SlZGUG01MEZTRGlISklDQStyOQpKVWl4TmRMT0hIa3BXK1VaY2tLY3NNbWFSbitKQTIxM2tHaTBTZmhTbHM2MHhEbnoKLS0tLS1FTkQgUFJJVkFURSBLRVktLS0tLQ==";
+
+    char encrypted_no_dots[] = "000.Xog6f+i5MUMliwngp7YNTXEddJU=.z1N0EuaKgktjHF96d6aB8ii4D0lgMuJytzYaUDq22Rc=BOiAShyfTVPIPp1YIuDuarwPt4dM1JRTxOdWabLSLm6Sqi97sRDvzGTa6+CA3NHoUVPjqP/IG2LY.NvnBhi32EivPoncNK70O4w==";
+
+    char *decrypted = ecies_decrypt((const char *) &pubKey, (const char *) &privKey, (const char *) &encrypted_no_dots);
+    assert_null(decrypted, "Did not decrypt test message successfully");
+
+    char encrypted_bad_tag[] = "000.Xog6f+i5MUMliwngp7YNTXEddJU=.z1N0EuaKgktjHF96d6aB8ii4D0lgMuJytzYaUDq22Rc=.BOiAShyfTVPIPp1YIuDuarwPt4dM1JRTxOdWabLSLm6Sqi97sRDvzGTa6+CA3NHoUVPjqP/IG2LY.NvnBhi32EivPoncNK71O4w==";
+    decrypted = ecies_decrypt((const char *) &pubKey, (const char *) &privKey, (const char *) &encrypted_bad_tag);
+    assert_null(decrypted, "Did not decrypt test message successfully");
+
+    char encrypted_bad_mac[] = "000.Xog6f+i5MUMliwngp7YNTXEddJU=.z1N0EuaKgktjHF96d6aB8ii4D1lgMuJytzYaUDq22Rc=.BOiAShyfTVPIPp1YIuDuarwPt4dM1JRTxOdWabLSLm6Sqi97sRDvzGTa6+CA3NHoUVPjqP/IG2LY.NvnBhi32EivPoncNK70O4w==";
+    decrypted = ecies_decrypt((const char *) &pubKey, (const char *) &privKey, (const char *) &encrypted_bad_mac);
+    assert_null(decrypted, "Did not decrypt test message successfully");
+
+    free(decrypted);
 }
 
 void test_incorrect_keys_ecies(Curve curve) {

@@ -33,8 +33,14 @@ int main(int argc, char **argv) {
     test_sha();
     test_aes();
     test_aes_long_string();
+    test_aes_decrypt_static_message();
+    test_aes_encrypt_static_message();
+    test_aes_bad_tag();
     test_hmac();
+    test_hmac_static();
     test_ecies(curve);
+    test_ecies_static_message();
+    test_ecies_fail();
     test_incorrect_keys_ecies(curve);
 
     test_ecdsa_v2(curve);
