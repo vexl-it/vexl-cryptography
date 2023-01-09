@@ -116,7 +116,7 @@ void _aes_encrypt(const char *password, const int password_len, const char *mess
     EVP_CIPHER_CTX_ctrl(ectx, EVP_CTRL_GCM_GET_TAG, EVP_GCM_TLS_TAG_LEN, tag_buf);
 
     base64_encode(cipher_str, cipher_str_len, cipher_len, cipher);
-    base64_encode(tag_buf, 16, tag_len, tag);
+    base64_encode(tag_buf, EVP_GCM_TLS_TAG_LEN, tag_len, tag);
 
     EVP_CIPHER_CTX_free(ectx);
     EVP_CIPHER_free(evp_cipher);
